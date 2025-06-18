@@ -50,6 +50,46 @@ const GameMessage = styled.div`
   margin-top: 20px;
 `;
 
+const DialogOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+const DialogBox = styled.div`
+  background: #222;
+  color: #fff;
+  padding: 32px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 32px #000a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const DialogButton = styled.button`
+  margin-top: 24px;
+  padding: 10px 28px;
+  font-size: 20px;
+  border-radius: 8px;
+  border: none;
+  background: #ffd700;
+  color: #222;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: #ffe066;
+  }
+`;
+
 const Game: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
@@ -64,6 +104,8 @@ const Game: React.FC = () => {
   const [bestScore, setBestScore] = useState<number>(() => Number(localStorage.getItem('bestScore')) || 0);
   const [bestTime, setBestTime] = useState<number>(() => Number(localStorage.getItem('bestTime')) || 0);
   const intervalRef = useRef<number | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogType, setDialogType] = useState<'win' | 'lose' | null>(null);
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
@@ -214,9 +256,9 @@ const Game: React.FC = () => {
     setTimer(0);
   }, []);
 
-  // Update best score/time on win
+  // Update best score/time on win or loss
   useEffect(() => {
-    if (gameState.won) {
+    if (gameState.won || gameState.gameOver) {
       if (gameState.score > bestScore) {
         setBestScore(gameState.score);
         localStorage.setItem('bestScore', String(gameState.score));
@@ -225,8 +267,25 @@ const Game: React.FC = () => {
         setBestTime(timer);
         localStorage.setItem('bestTime', String(timer));
       }
+      setShowDialog(true);
+      setDialogType(gameState.won ? 'win' : 'lose');
     }
-  }, [gameState.won, gameState.score, timer, bestScore, bestTime]);
+  }, [gameState.won, gameState.gameOver, gameState.score, timer, bestScore, bestTime]);
+
+  // Dialog: restart game
+  const handleRestart = () => {
+    setGameState({
+      pacman: { x: 14, y: 23 },
+      ghosts: getInitialGhostPositions(),
+      food: getInitialFood(),
+      score: 0,
+      gameOver: false,
+      won: false,
+    });
+    setTimer(0);
+    setShowDialog(false);
+    setDialogType(null);
+  };
 
   const renderGame = () => {
     // Start with the maze layout
@@ -280,11 +339,15 @@ const Game: React.FC = () => {
       <BestStats>Best Score: {bestScore} | Best Time: {bestTime === 0 ? '-' : bestTime + 's'}</BestStats>
       <Score>Score: {gameState.score}</Score>
       <GameBoard>{renderGame()}</GameBoard>
-      {gameState.gameOver && (
-        <GameMessage color="red">Game Over!</GameMessage>
-      )}
-      {gameState.won && (
-        <GameMessage color="green">You Won!</GameMessage>
+      {showDialog && (
+        <DialogOverlay>
+          <DialogBox>
+            <GameMessage color={dialogType === 'win' ? 'green' : 'red'}>
+              {dialogType === 'win' ? 'You Won!' : 'Game Over!'}
+            </GameMessage>
+            <DialogButton onClick={handleRestart}>Continue</DialogButton>
+          </DialogBox>
+        </DialogOverlay>
       )}
     </GameContainer>
   );
