@@ -109,38 +109,46 @@ const Game: React.FC = () => {
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
+      const now = Date.now();
       const occupied = new Set<string>();
       const newGhosts = [];
       for (let idx = 0; idx < prevState.ghosts.length; idx++) {
         const ghost = prevState.ghosts[idx];
         // Add already-moved ghosts' positions to occupied
         newGhosts.forEach(g => occupied.add(`${g.position.x},${g.position.y}`));
-        // Try to move the ghost
-        let movedGhost = moveGhost(ghost, prevState.pacman);
-        let tries = 0;
-        // If the new position is occupied, try up to 4 alternative directions
-        while (
-          occupied.has(`${movedGhost.position.x},${movedGhost.position.y}`) &&
-          tries < 4
-        ) {
-          const altDirs = ['up', 'down', 'left', 'right'].filter(
-            d => d !== movedGhost.direction
-          ) as Direction[];
-          for (const dir of altDirs) {
-            const altGhost = moveGhost({ ...ghost, direction: dir }, prevState.pacman);
-            if (!occupied.has(`${altGhost.position.x},${altGhost.position.y}`)) {
-              movedGhost = altGhost;
+        // Only move if enough time has passed
+        if (!ghost.lastMoved || !ghost.speed || now - ghost.lastMoved >= ghost.speed) {
+          let movedGhost = moveGhost(ghost, prevState.pacman);
+          movedGhost.lastMoved = now;
+          let tries = 0;
+          // If the new position is occupied, try up to 4 alternative directions
+          while (
+            occupied.has(`${movedGhost.position.x},${movedGhost.position.y}`) &&
+            tries < 4
+          ) {
+            const altDirs = ['up', 'down', 'left', 'right'].filter(
+              d => d !== movedGhost.direction
+            ) as Direction[];
+            for (const dir of altDirs) {
+              const altGhost = moveGhost({ ...ghost, direction: dir }, prevState.pacman);
+              if (!occupied.has(`${altGhost.position.x},${altGhost.position.y}`)) {
+                movedGhost = { ...altGhost, lastMoved: now };
+                break;
+              }
+            }
+            tries++;
+            if (tries >= 4) {
+              movedGhost = { ...ghost, lastMoved: now };
               break;
             }
           }
-          tries++;
-          if (tries >= 4) {
-            movedGhost = { ...ghost };
-            break;
-          }
+          occupied.add(`${movedGhost.position.x},${movedGhost.position.y}`);
+          newGhosts.push(movedGhost);
+        } else {
+          // Not time to move yet
+          occupied.add(`${ghost.position.x},${ghost.position.y}`);
+          newGhosts.push(ghost);
         }
-        occupied.add(`${movedGhost.position.x},${movedGhost.position.y}`);
-        newGhosts.push(movedGhost);
       }
 
       // Check for collision with ghosts
@@ -159,7 +167,7 @@ const Game: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const ghostInterval = setInterval(moveGhosts, 400);
+    const ghostInterval = setInterval(moveGhosts, 100);
     return () => clearInterval(ghostInterval);
   }, [moveGhosts]);
 

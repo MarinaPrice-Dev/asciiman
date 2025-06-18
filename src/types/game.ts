@@ -13,6 +13,8 @@ export type Ghost = {
   lockOn?: boolean;
   lockOnTimer?: number;
   lockOnDuration?: number;
+  speed?: number; // ms per move
+  lastMoved?: number; // timestamp
 };
 
 export type GameState = {

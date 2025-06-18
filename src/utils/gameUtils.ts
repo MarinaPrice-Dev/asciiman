@@ -55,10 +55,10 @@ export const getInitialFood = (): Position[] => {
 
 export const getInitialGhostPositions = (): Ghost[] => {
   return [
-    { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 15, lockOnTimer: 0 },
-    { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 12, lockOnTimer: 0 },
-    { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 10, lockOnTimer: 0 },
-    { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 6, lockOnTimer: 0 },
+    { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+    { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+    { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 10, lockOnTimer: 0, speed: 400, lastMoved: 0 },
+    { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 6, lockOnTimer: 0, speed: 400, lastMoved: 0 },
   ];
 };
 
