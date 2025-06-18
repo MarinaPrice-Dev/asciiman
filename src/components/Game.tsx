@@ -151,12 +151,22 @@ const Game: React.FC = () => {
   }, [handleKeyPress]);
 
   const renderGame = () => {
+    // Start with the maze layout
     const board = MAZE_LAYOUT.map(row => [...row]);
 
-    // Place food
+    // Place food only where it still exists
     gameState.food.forEach(({ x, y }) => {
       board[y][x] = '.';
     });
+
+    // Remove dots from the maze where food has been eaten
+    for (let y = 0; y < board.length; y++) {
+      for (let x = 0; x < board[y].length; x++) {
+        if (MAZE_LAYOUT[y][x] === '.' && !gameState.food.some(f => f.x === x && f.y === y)) {
+          board[y][x] = ' ';
+        }
+      }
+    }
 
     // Place ghosts
     gameState.ghosts.forEach(ghost => {
