@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import styled from 'styled-components';
 import type { GameState, Direction } from '../types/game';
 import { COLORS } from '../types/game';
@@ -34,6 +34,16 @@ const Score = styled.div`
   margin-bottom: 20px;
 `;
 
+const Timer = styled.div`
+  font-size: 20px;
+  margin-bottom: 10px;
+`;
+
+const BestStats = styled.div`
+  font-size: 18px;
+  margin-bottom: 10px;
+`;
+
 const GameMessage = styled.div`
   font-size: 32px;
   color: ${props => props.color};
@@ -49,6 +59,11 @@ const Game: React.FC = () => {
     gameOver: false,
     won: false,
   });
+
+  const [timer, setTimer] = useState(0);
+  const [bestScore, setBestScore] = useState<number>(() => Number(localStorage.getItem('bestScore')) || 0);
+  const [bestTime, setBestTime] = useState<number>(() => Number(localStorage.getItem('bestTime')) || 0);
+  const intervalRef = useRef<number | null>(null);
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
@@ -179,6 +194,40 @@ const Game: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
+  // Timer effect
+  useEffect(() => {
+    if (!gameState.gameOver && !gameState.won) {
+      intervalRef.current = setInterval(() => {
+        setTimer(t => t + 1);
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [gameState.gameOver, gameState.won]);
+
+  // Reset timer on new game
+  useEffect(() => {
+    setTimer(0);
+  }, []);
+
+  // Update best score/time on win
+  useEffect(() => {
+    if (gameState.won) {
+      if (gameState.score > bestScore) {
+        setBestScore(gameState.score);
+        localStorage.setItem('bestScore', String(gameState.score));
+      }
+      if (timer < bestTime || bestTime === 0) {
+        setBestTime(timer);
+        localStorage.setItem('bestTime', String(timer));
+      }
+    }
+  }, [gameState.won, gameState.score, timer, bestScore, bestTime]);
+
   const renderGame = () => {
     // Start with the maze layout
     const board = MAZE_LAYOUT.map(row => [...row]);
@@ -227,6 +276,8 @@ const Game: React.FC = () => {
 
   return (
     <GameContainer>
+      <Timer>Time: {timer}s</Timer>
+      <BestStats>Best Score: {bestScore} | Best Time: {bestTime === 0 ? '-' : bestTime + 's'}</BestStats>
       <Score>Score: {gameState.score}</Score>
       <GameBoard>{renderGame()}</GameBoard>
       {gameState.gameOver && (
