@@ -324,21 +324,23 @@ const Game: React.FC = () => {
     setTimer(0);
   }, []);
 
-  // Update best score/time on win or loss
+  // Update best and last score/time on win or loss
   useEffect(() => {
     if (gameState.won || gameState.gameOver) {
+      // Always save last score and timer
+      localStorage.setItem('lastScore', String(gameState.score));
+      localStorage.setItem('lastTime', String(timer));
+      // Only update best score/time if score is higher
       if (gameState.score > bestScore) {
         setBestScore(gameState.score);
-        localStorage.setItem('bestScore', String(gameState.score));
-      }
-      if (timer < bestTime || bestTime === 0) {
         setBestTime(timer);
+        localStorage.setItem('bestScore', String(gameState.score));
         localStorage.setItem('bestTime', String(timer));
       }
       setShowDialog(true);
       setDialogType(gameState.won ? 'win' : 'lose');
     }
-  }, [gameState.won, gameState.gameOver, gameState.score, timer, bestScore, bestTime]);
+  }, [gameState.won, gameState.gameOver, gameState.score, timer, bestScore]);
 
   // Dialog: restart game
   const handleRestart = () => {
