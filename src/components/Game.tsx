@@ -239,8 +239,22 @@ const Game: React.FC = () => {
   // Timer effect
   useEffect(() => {
     if (!gameState.gameOver && !gameState.won) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         setTimer(t => t + 1);
+        setGameState(prevState => {
+          const newGhosts = prevState.ghosts.map(ghost => {
+            if (ghost.lockOn && ghost.lockOnTimer && ghost.lockOnTimer > 0) {
+              const newTimer = ghost.lockOnTimer - 1;
+              return {
+                ...ghost,
+                lockOnTimer: newTimer,
+                lockOn: newTimer > 0,
+              };
+            }
+            return ghost;
+          });
+          return { ...prevState, ghosts: newGhosts };
+        });
       }, 1000);
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);

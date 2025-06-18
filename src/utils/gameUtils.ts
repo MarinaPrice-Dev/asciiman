@@ -55,10 +55,10 @@ export const getInitialFood = (): Position[] => {
 
 export const getInitialGhostPositions = (): Ghost[] => {
   return [
-    { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky' },
-    { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky' },
-    { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky' },
-    { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde' },
+    { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 15, lockOnTimer: 0 },
+    { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 12, lockOnTimer: 0 },
+    { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 10, lockOnTimer: 0 },
+    { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 6, lockOnTimer: 0 },
   ];
 };
 
@@ -95,18 +95,23 @@ function isPacmanVisible(ghost: Ghost, pacman: Position): Direction | null {
 }
 
 export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
-  const { direction, lockOn } = ghost;
+  const { direction, lockOn, lockOnTimer, lockOnDuration } = ghost;
   let newDirection = direction;
   let newLockOn = lockOn;
+  let newLockOnTimer = lockOnTimer ?? 0;
 
   // Check if Pacman is visible
   const visibleDir = isPacmanVisible(ghost, pacmanPos);
   if (visibleDir) {
     newDirection = visibleDir;
     newLockOn = true;
-  } else if (lockOn) {
-    // Lost sight of Pacman
+    newLockOnTimer = lockOnDuration ?? 10; // fallback to 10s if not set
+  } else if (lockOn && newLockOnTimer > 0) {
+    // Still locked on, keep following
+    newLockOn = true;
+  } else {
     newLockOn = false;
+    newLockOnTimer = 0;
   }
 
   // If no direction, pick a random valid one
@@ -144,5 +149,6 @@ export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
     position: nextPos,
     direction: newDirection,
     lockOn: newLockOn,
+    lockOnTimer: newLockOnTimer,
   };
 }; 

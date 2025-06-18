@@ -11,6 +11,8 @@ export type Ghost = {
   name: string;
   direction?: Direction;
   lockOn?: boolean;
+  lockOnTimer?: number;
+  lockOnDuration?: number;
 };
 
 export type GameState = {
