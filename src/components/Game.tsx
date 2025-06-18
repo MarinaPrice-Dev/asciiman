@@ -52,7 +52,39 @@ const Game: React.FC = () => {
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
-      const newGhosts = prevState.ghosts.map(ghost => moveGhost(ghost, prevState.pacman));
+      const occupied = new Set<string>();
+      const newGhosts = [];
+      for (let idx = 0; idx < prevState.ghosts.length; idx++) {
+        const ghost = prevState.ghosts[idx];
+        // Add already-moved ghosts' positions to occupied
+        newGhosts.forEach(g => occupied.add(`${g.position.x},${g.position.y}`));
+        // Try to move the ghost
+        let movedGhost = moveGhost(ghost, prevState.pacman);
+        let tries = 0;
+        // If the new position is occupied, try up to 4 alternative directions
+        while (
+          occupied.has(`${movedGhost.position.x},${movedGhost.position.y}`) &&
+          tries < 4
+        ) {
+          const altDirs = ['up', 'down', 'left', 'right'].filter(
+            d => d !== movedGhost.direction
+          ) as Direction[];
+          for (const dir of altDirs) {
+            const altGhost = moveGhost({ ...ghost, direction: dir }, prevState.pacman);
+            if (!occupied.has(`${altGhost.position.x},${altGhost.position.y}`)) {
+              movedGhost = altGhost;
+              break;
+            }
+          }
+          tries++;
+          if (tries >= 4) {
+            movedGhost = { ...ghost };
+            break;
+          }
+        }
+        occupied.add(`${movedGhost.position.x},${movedGhost.position.y}`);
+        newGhosts.push(movedGhost);
+      }
 
       // Check for collision with ghosts
       const collision = newGhosts.some(
