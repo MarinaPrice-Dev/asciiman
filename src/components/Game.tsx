@@ -23,65 +23,65 @@ const GameContainer = styled.div`
 `;
 
 const Header = styled.h1`
-  font-size: 2.8rem;
+  font-size: 2.2rem;
   font-weight: bold;
-  letter-spacing: 2px;
-  margin-bottom: 24px;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
   color: #ffd700;
-  text-shadow: 2px 2px 8px #000a;
+  text-shadow: 1px 1px 4px #000a;
 `;
 
 const StatsRow = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 32px;
+  gap: 16px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
 `;
 
 const GameCard = styled.div`
   background: #181818;
-  border-radius: 18px;
-  box-shadow: 0 6px 32px #000a;
-  padding: 36px 48px 32px 48px;
+  border-radius: 12px;
+  box-shadow: 0 3px 16px #000a;
+  padding: 18px 12px 12px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 380px;
+  min-width: 0;
 `;
 
 const GameBoard = styled.pre`
   line-height: 1;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   margin: 0;
-  font-size: 24px;
+  font-size: 18px;
   background: #111;
-  border-radius: 10px;
-  padding: 18px 16px 12px 16px;
-  box-shadow: 0 2px 12px #0006;
+  border-radius: 6px;
+  padding: 8px 4px 4px 4px;
+  box-shadow: 0 1px 6px #0006;
 `;
 
 const Score = styled.div`
-  font-size: 1.7rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: #ffd700;
 `;
 
 const Timer = styled.div`
-  font-size: 1.3rem;
+  font-size: 1rem;
   color: #fff;
 `;
 
 const BestStats = styled.div`
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #aaa;
 `;
 
 const GameMessage = styled.div`
-  font-size: 2.2rem;
+  font-size: 1.3rem;
   color: ${props => props.color};
-  margin-top: 18px;
+  margin-top: 10px;
   font-weight: bold;
   text-align: center;
 `;
@@ -102,30 +102,30 @@ const DialogOverlay = styled.div`
 const DialogBox = styled.div`
   background: #222;
   color: #fff;
-  padding: 40px 56px;
-  border-radius: 18px;
-  box-shadow: 0 8px 40px #000a;
+  padding: 18px 18px;
+  border-radius: 10px;
+  box-shadow: 0 3px 16px #000a;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 320px;
+  min-width: 180px;
 `;
 
 const DialogButton = styled.button`
-  margin-top: 32px;
-  padding: 14px 38px;
-  font-size: 1.3rem;
-  border-radius: 10px;
+  margin-top: 16px;
+  padding: 8px 18px;
+  font-size: 1rem;
+  border-radius: 6px;
   border: none;
   background: #ffd700;
   color: #222;
   font-weight: bold;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
-  box-shadow: 0 2px 8px #0004;
+  box-shadow: 0 1px 4px #0004;
   &:hover {
     background: #ffe066;
-    transform: translateY(-2px) scale(1.04);
+    transform: translateY(-1px) scale(1.03);
   }
 `;
 
