@@ -52,10 +52,7 @@ const Game: React.FC = () => {
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
-      const newGhosts = prevState.ghosts.map(ghost => ({
-        ...ghost,
-        position: moveGhost(ghost, prevState.pacman),
-      }));
+      const newGhosts = prevState.ghosts.map(ghost => moveGhost(ghost, prevState.pacman));
 
       // Check for collision with ghosts
       const collision = newGhosts.some(

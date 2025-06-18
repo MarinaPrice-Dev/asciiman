@@ -52,26 +52,87 @@ export const getInitialGhostPositions = (): Ghost[] => {
   ];
 };
 
-export const moveGhost = (ghost: Ghost, pacmanPos: Position): Position => {
-  // Simple ghost AI: Move towards Pacman with some randomness
-  const possibleMoves: Position[] = [
-    { x: ghost.position.x - 1, y: ghost.position.y },
-    { x: ghost.position.x + 1, y: ghost.position.y },
-    { x: ghost.position.x, y: ghost.position.y - 1 },
-    { x: ghost.position.x, y: ghost.position.y + 1 },
-  ].filter(isValidPosition);
+const directions: Direction[] = ['up', 'down', 'left', 'right'];
 
-  if (possibleMoves.length === 0) return ghost.position;
+function getOppositeDirection(dir: Direction): Direction {
+  switch (dir) {
+    case 'up': return 'down';
+    case 'down': return 'up';
+    case 'left': return 'right';
+    case 'right': return 'left';
+  }
+}
 
-  // Sometimes move randomly to make the ghosts less predictable
-  if (Math.random() < 0.3) {
-    return possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+function getAvailableDirections(pos: Position, excludeDir?: Direction): Direction[] {
+  return directions.filter(dir => {
+    if (excludeDir && dir === getOppositeDirection(excludeDir)) return false;
+    const next = movePosition(pos, dir);
+    return isValidPosition(next);
+  });
+}
+
+function isPacmanVisible(ghost: Ghost, pacman: Position): Direction | null {
+  // Check if Pacman is visible in a straight line (no walls) from ghost
+  for (const dir of directions) {
+    let pos = { ...ghost.position };
+    while (true) {
+      pos = movePosition(pos, dir);
+      if (!isValidPosition(pos)) break;
+      if (pos.x === pacman.x && pos.y === pacman.y) return dir;
+    }
+  }
+  return null;
+}
+
+export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
+  const { direction, lockOn } = ghost;
+  let newDirection = direction;
+  let newLockOn = lockOn;
+
+  // Check if Pacman is visible
+  const visibleDir = isPacmanVisible(ghost, pacmanPos);
+  if (visibleDir) {
+    newDirection = visibleDir;
+    newLockOn = true;
+  } else if (lockOn) {
+    // Lost sight of Pacman
+    newLockOn = false;
   }
 
-  // Otherwise, move towards Pacman
-  return possibleMoves.reduce((closest, move) => {
-    const currentDistance = Math.abs(move.x - pacmanPos.x) + Math.abs(move.y - pacmanPos.y);
-    const closestDistance = Math.abs(closest.x - pacmanPos.x) + Math.abs(closest.y - pacmanPos.y);
-    return currentDistance < closestDistance ? move : closest;
-  });
+  // If no direction, pick a random valid one
+  if (!newDirection) {
+    const dirs = getAvailableDirections(ghost.position);
+    newDirection = dirs[Math.floor(Math.random() * dirs.length)];
+  }
+
+  // Try to move in the current direction
+  let nextPos = movePosition(ghost.position, newDirection);
+  if (!isValidPosition(nextPos)) {
+    // Hit a wall, pick a new direction (not opposite)
+    const dirs = getAvailableDirections(ghost.position, newDirection);
+    if (dirs.length > 0) {
+      newDirection = dirs[Math.floor(Math.random() * dirs.length)];
+      nextPos = movePosition(ghost.position, newDirection);
+    } else {
+      // Stuck, stay in place
+      nextPos = ghost.position;
+    }
+  } else {
+    // At a junction (more than 2 available directions), can pick a new direction
+    const dirs = getAvailableDirections(ghost.position, newDirection);
+    if (dirs.length > 1) {
+      // If locked on, keep following Pacman
+      if (!newLockOn) {
+        newDirection = dirs[Math.floor(Math.random() * dirs.length)];
+        nextPos = movePosition(ghost.position, newDirection);
+      }
+    }
+  }
+
+  return {
+    ...ghost,
+    position: nextPos,
+    direction: newDirection,
+    lockOn: newLockOn,
+  };
 }; 

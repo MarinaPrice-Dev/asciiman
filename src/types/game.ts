@@ -9,6 +9,8 @@ export type Ghost = {
   position: Position;
   color: string;
   name: string;
+  direction?: Direction;
+  lockOn?: boolean;
 };
 
 export type GameState = {
