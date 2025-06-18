@@ -15,7 +15,7 @@ const GameContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 0 20px 20px 20px;
   background-color: black;
   color: white;
   font-family: monospace;
@@ -66,16 +66,22 @@ const Score = styled.div`
   font-size: 1.2rem;
   font-weight: bold;
   color: #ffd700;
+  width: 140px;
+  text-align: left;
 `;
 
 const Timer = styled.div`
   font-size: 1rem;
   color: #fff;
+  width: 75px;
+  text-align: left;
 `;
 
 const BestStats = styled.div`
   font-size: 0.95rem;
   color: #aaa;
+  width: 220px;
+  text-align: center;
 `;
 
 const GameMessage = styled.div`
