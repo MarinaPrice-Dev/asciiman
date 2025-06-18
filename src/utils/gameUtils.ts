@@ -14,6 +14,8 @@ export const isValidPosition = (position: Position): boolean => {
 
 export const movePosition = (position: Position, direction: Direction): Position => {
   const newPosition = { ...position };
+  // Tunnel row is y=14 (indexing from 0)
+  const tunnelRow = 14;
   switch (direction) {
     case 'up':
       newPosition.y -= 1;
@@ -22,10 +24,18 @@ export const movePosition = (position: Position, direction: Direction): Position
       newPosition.y += 1;
       break;
     case 'left':
-      newPosition.x -= 1;
+      if (newPosition.y === tunnelRow && newPosition.x === 0) {
+        newPosition.x = GAME_WIDTH - 1;
+      } else {
+        newPosition.x -= 1;
+      }
       break;
     case 'right':
-      newPosition.x += 1;
+      if (newPosition.y === tunnelRow && newPosition.x === GAME_WIDTH - 1) {
+        newPosition.x = 0;
+      } else {
+        newPosition.x += 1;
+      }
       break;
   }
   return newPosition;
