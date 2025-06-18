@@ -22,32 +22,68 @@ const GameContainer = styled.div`
   min-height: 100vh;
 `;
 
+const Header = styled.h1`
+  font-size: 2.8rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  color: #ffd700;
+  text-shadow: 2px 2px 8px #000a;
+`;
+
+const StatsRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+`;
+
+const GameCard = styled.div`
+  background: #181818;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px #000a;
+  padding: 36px 48px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 380px;
+`;
+
 const GameBoard = styled.pre`
   line-height: 1;
   letter-spacing: 2px;
   margin: 0;
-  font-size: 20px;
+  font-size: 24px;
+  background: #111;
+  border-radius: 10px;
+  padding: 18px 16px 12px 16px;
+  box-shadow: 0 2px 12px #0006;
 `;
 
 const Score = styled.div`
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 1.7rem;
+  font-weight: bold;
+  color: #ffd700;
 `;
 
 const Timer = styled.div`
-  font-size: 20px;
-  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: #fff;
 `;
 
 const BestStats = styled.div`
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #aaa;
 `;
 
 const GameMessage = styled.div`
-  font-size: 32px;
+  font-size: 2.2rem;
   color: ${props => props.color};
-  margin-top: 20px;
+  margin-top: 18px;
+  font-weight: bold;
+  text-align: center;
 `;
 
 const DialogOverlay = styled.div`
@@ -66,27 +102,30 @@ const DialogOverlay = styled.div`
 const DialogBox = styled.div`
   background: #222;
   color: #fff;
-  padding: 32px 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 32px #000a;
+  padding: 40px 56px;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px #000a;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 320px;
 `;
 
 const DialogButton = styled.button`
-  margin-top: 24px;
-  padding: 10px 28px;
-  font-size: 20px;
-  border-radius: 8px;
+  margin-top: 32px;
+  padding: 14px 38px;
+  font-size: 1.3rem;
+  border-radius: 10px;
   border: none;
   background: #ffd700;
   color: #222;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 2px 8px #0004;
   &:hover {
     background: #ffe066;
+    transform: translateY(-2px) scale(1.04);
   }
 `;
 
@@ -372,20 +411,25 @@ const Game: React.FC = () => {
 
   return (
     <GameContainer>
-      <Timer>Time: {timer}s</Timer>
-      <BestStats>Best Score: {bestScore} | Best Time: {bestTime === 0 ? '-' : bestTime + 's'}</BestStats>
-      <Score>Score: {gameState.score}</Score>
-      <GameBoard>{renderGame()}</GameBoard>
-      {showDialog && (
-        <DialogOverlay>
-          <DialogBox>
-            <GameMessage color={dialogType === 'win' ? 'green' : 'red'}>
-              {dialogType === 'win' ? 'You Won!' : 'Game Over!'}
-            </GameMessage>
-            <DialogButton onClick={handleRestart}>Continue</DialogButton>
-          </DialogBox>
-        </DialogOverlay>
-      )}
+      <Header>AsciiMan</Header>
+      <GameCard>
+        <StatsRow>
+          <Timer>⏱️ {timer}s</Timer>
+          <Score>Score: {gameState.score}</Score>
+          <BestStats>🏆 Best: {bestScore} | ⏲️ {bestTime === 0 ? '-' : bestTime + 's'}</BestStats>
+        </StatsRow>
+        <GameBoard>{renderGame()}</GameBoard>
+        {showDialog && (
+          <DialogOverlay>
+            <DialogBox>
+              <GameMessage color={dialogType === 'win' ? 'limegreen' : 'crimson'}>
+                {dialogType === 'win' ? '🎉 You Won!' : '💀 Game Over!'}
+              </GameMessage>
+              <DialogButton onClick={handleRestart}>Continue</DialogButton>
+            </DialogBox>
+          </DialogOverlay>
+        )}
+      </GameCard>
     </GameContainer>
   );
 };
