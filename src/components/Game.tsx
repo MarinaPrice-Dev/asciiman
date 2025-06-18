@@ -106,6 +106,7 @@ const Game: React.FC = () => {
   const intervalRef = useRef<number | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [dialogType, setDialogType] = useState<'win' | 'lose' | null>(null);
+  const [blink, setBlink] = useState(false);
 
   const moveGhosts = useCallback(() => {
     setGameState(prevState => {
@@ -309,6 +310,14 @@ const Game: React.FC = () => {
     setDialogType(null);
   };
 
+  // Blink effect for angry ghosts
+  useEffect(() => {
+    const blinkInterval = setInterval(() => {
+      setBlink(b => !b);
+    }, 300);
+    return () => clearInterval(blinkInterval);
+  }, []);
+
   const renderGame = () => {
     // Start with the maze layout
     const board = MAZE_LAYOUT.map(row => [...row]);
@@ -346,7 +355,13 @@ const Game: React.FC = () => {
             const ghost = gameState.ghosts.find(
               g => g.position.x === j && g.position.y === i
             );
-            if (ghost) color = ghost.color;
+            if (ghost) {
+              if (ghost.lockOn && blink) {
+                color = '#fff'; // Blinking angry (white)
+              } else {
+                color = ghost.color;
+              }
+            }
           }
           return <span style={{ color }}>{cell}</span>;
         })}
