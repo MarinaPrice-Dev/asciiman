@@ -94,6 +94,19 @@ function isPacmanVisible(ghost: Ghost, pacman: Position): Direction | null {
   return null;
 }
 
+function getAngle(from: Position, to: Position): number {
+  return Math.atan2(to.y - from.y, to.x - from.x);
+}
+
+function directionToAngle(dir: Direction): number {
+  switch (dir) {
+    case 'right': return 0;
+    case 'down': return Math.PI / 2;
+    case 'left': return Math.PI;
+    case 'up': return -Math.PI / 2;
+  }
+}
+
 export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
   const { direction, lockOn, lockOnTimer, lockOnDuration } = ghost;
   let newDirection = direction;
@@ -126,7 +139,27 @@ export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
     // Hit a wall, pick a new direction (not opposite)
     const dirs = getAvailableDirections(ghost.position, newDirection);
     if (dirs.length > 0) {
-      newDirection = dirs[Math.floor(Math.random() * dirs.length)];
+      if (newLockOn) {
+        // Pick direction closest to Pacman
+        const angleToPacman = getAngle(ghost.position, pacmanPos);
+        newDirection = dirs.reduce((bestDir, dir) => {
+          const diff = Math.abs(
+            Math.atan2(
+              Math.sin(angleToPacman - directionToAngle(dir)),
+              Math.cos(angleToPacman - directionToAngle(dir))
+            )
+          );
+          const bestDiff = Math.abs(
+            Math.atan2(
+              Math.sin(angleToPacman - directionToAngle(bestDir)),
+              Math.cos(angleToPacman - directionToAngle(bestDir))
+            )
+          );
+          return diff < bestDiff ? dir : bestDir;
+        }, dirs[0]);
+      } else {
+        newDirection = dirs[Math.floor(Math.random() * dirs.length)];
+      }
       nextPos = movePosition(ghost.position, newDirection);
     } else {
       // Stuck, stay in place
@@ -136,11 +169,28 @@ export const moveGhost = (ghost: Ghost, pacmanPos: Position): Ghost => {
     // At a junction (more than 2 available directions), can pick a new direction
     const dirs = getAvailableDirections(ghost.position, newDirection);
     if (dirs.length > 1) {
-      // If locked on, keep following Pacman
-      if (!newLockOn) {
+      if (newLockOn) {
+        // Pick direction closest to Pacman
+        const angleToPacman = getAngle(ghost.position, pacmanPos);
+        newDirection = dirs.reduce((bestDir, dir) => {
+          const diff = Math.abs(
+            Math.atan2(
+              Math.sin(angleToPacman - directionToAngle(dir)),
+              Math.cos(angleToPacman - directionToAngle(dir))
+            )
+          );
+          const bestDiff = Math.abs(
+            Math.atan2(
+              Math.sin(angleToPacman - directionToAngle(bestDir)),
+              Math.cos(angleToPacman - directionToAngle(bestDir))
+            )
+          );
+          return diff < bestDiff ? dir : bestDir;
+        }, dirs[0]);
+      } else {
         newDirection = dirs[Math.floor(Math.random() * dirs.length)];
-        nextPos = movePosition(ghost.position, newDirection);
       }
+      nextPos = movePosition(ghost.position, newDirection);
     }
   }
 
