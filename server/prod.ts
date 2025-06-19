@@ -19,21 +19,13 @@ const port = process.env.PORT || 3000;
 
 // Initialize MongoDB client
 const getMongoClient = async (): Promise<MongoClient> => {
-  const username = process.env.MONGODB_USERNAME;
-  const password = process.env.MONGODB_PASSWORD;
+  const connectionString = process.env.AZURE_COSMOS_CONNECTIONSTRING;
   
-  if (!username || !password) {
-    throw new Error('MongoDB credentials not found in environment variables');
+  if (!connectionString) {
+    throw new Error('MongoDB connection string not found in environment variables');
   }
 
-  const uri = `mongodb://${username}:${password}@asciistudio-server.mongo.cosmos.azure.com:443/`;
-  const client = new MongoClient(uri, {
-    tls: true,
-    replicaSet: 'globaldb',
-    retryWrites: false,
-    maxIdleTimeMS: 120000,
-  });
-
+  const client = new MongoClient(connectionString);
   await client.connect();
   return client;
 };

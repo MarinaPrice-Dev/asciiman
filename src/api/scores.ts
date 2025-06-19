@@ -15,6 +15,8 @@ export const sanitizeName = (name: string): string => {
 // Submit score to backend API
 export const submitScore = async (scoreData: Omit<GameScore, 'timestamp'>): Promise<void> => {
   try {
+    console.log('Submitting score:', { ...scoreData, name: '[REDACTED]' });
+    
     // In development, use localhost. In production, use relative path
     const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
     const response = await fetch(`${baseUrl}/api/scores`, {
@@ -25,9 +27,11 @@ export const submitScore = async (scoreData: Omit<GameScore, 'timestamp'>): Prom
       body: JSON.stringify(scoreData),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to submit score');
+      console.error('Server response:', data);
+      throw new Error(data.details || data.error || 'Failed to submit score');
     }
   } catch (error) {
     console.error('Error submitting score:', error);
