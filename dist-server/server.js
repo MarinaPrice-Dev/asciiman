@@ -9,57 +9,59 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-// Security middleware
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "blob:"],
-            connectSrc: ["'self'"],
-            fontSrc: ["'self'", "data:"],
-            objectSrc: ["'none'"],
-            mediaSrc: ["'none'"],
-            frameSrc: ["'none'"],
+if (process.env.NODE_ENV === 'production') {
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", "data:", "blob:"],
+                connectSrc: ["'self'"],
+                fontSrc: ["'self'", "data:"],
+                objectSrc: ["'none'"],
+                mediaSrc: ["'none'"],
+                frameSrc: ["'none'"],
+            },
         },
-    },
-    crossOriginEmbedderPolicy: true,
-    crossOriginOpenerPolicy: true,
-    crossOriginResourcePolicy: { policy: "same-site" },
-    dnsPrefetchControl: true,
-    frameguard: { action: "deny" },
-    hidePoweredBy: true,
-    hsts: true,
-    ieNoOpen: true,
-    noSniff: true,
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
-    xssFilter: true,
-}));
-// CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-    'https://asciiman-hmexechchsavd4hx.uksouth-01.azurewebsites.net',
-    'http://localhost:5173',
-    'http://localhost:3001'
-];
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
-    credentials: true,
-    maxAge: 86400 // 24 hours
-}));
-// Request size limits
-app.use(express.json({ limit: '10kb' }));
-const port = process.env.PORT || 3000;
-// Initialize MongoDB client with proper Azure Cosmos DB settings
+        crossOriginEmbedderPolicy: true,
+        crossOriginOpenerPolicy: true,
+        crossOriginResourcePolicy: { policy: "same-site" },
+        dnsPrefetchControl: true,
+        frameguard: { action: "deny" },
+        hidePoweredBy: true,
+        hsts: true,
+        ieNoOpen: true,
+        noSniff: true,
+        referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+        xssFilter: true,
+    }));
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+        'https://asciiman-hmexechchsavd4hx.uksouth-01.azurewebsites.net',
+        'http://localhost:5173',
+        'http://localhost:3001'
+    ];
+    app.use(cors({
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            }
+            else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
+        credentials: true,
+        maxAge: 86400
+    }));
+    app.use(express.json({ limit: '10kb' }));
+}
+else {
+    app.use(cors());
+    app.use(express.json());
+}
+const port = process.env.PORT || (process.env.NODE_ENV === 'production' ? 3000 : 3001);
 const getMongoClient = async () => {
     const connectionString = process.env.AZURE_COSMOS_CONNECTIONSTRING;
     if (!connectionString) {
@@ -69,20 +71,17 @@ const getMongoClient = async () => {
     console.log('Attempting to connect to MongoDB...');
     try {
         const client = new MongoClient(connectionString, {
-            // Azure Cosmos DB specific settings
             tls: true,
             replicaSet: 'globaldb',
             readPreference: 'primary',
             retryWrites: false,
             directConnection: true,
-            // Add timeouts
             connectTimeoutMS: 30000,
             socketTimeoutMS: 30000,
             serverSelectionTimeoutMS: 30000
         });
         await client.connect();
         console.log('Successfully connected to MongoDB');
-        // Ensure index exists
         const db = client.db('asciiman');
         const scores = db.collection('scores');
         try {
@@ -99,29 +98,21 @@ const getMongoClient = async () => {
         throw error;
     }
 };
-// Sanitize name to only allow alphanumeric characters
 const sanitizeName = (name) => {
     return name.replace(/[^a-zA-Z0-9]/g, '');
 };
-// Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
 });
-// Get scores endpoint
 app.get('/api/scores', async (req, res) => {
     let client = null;
     try {
         const { difficulty } = req.query;
         const filterDifficulty = typeof difficulty === 'string' ? difficulty.toLowerCase() : 'all';
-        
         client = await getMongoClient();
         const db = client.db('asciiman');
         const scores = db.collection('scores');
-
-        // Build query filter
         const queryFilter = filterDifficulty === 'all' ? {} : { mode: filterDifficulty };
-
-        // Get scores with optional difficulty filter
         const allScores = await scores.find(queryFilter).toArray();
         const sortedScores = allScores
             .sort((a, b) => b.score - a.score)
@@ -149,32 +140,25 @@ app.get('/api/scores', async (req, res) => {
         }
     }
 });
-// Validate score data
 const validateScoreData = (data) => {
     if (!data || typeof data !== 'object')
         return false;
     const submission = data;
     const validModes = ['easy', 'medium', 'hard', 'insane'];
-    return (
-    // Name validation
-    typeof submission.name === 'string' &&
+    return (typeof submission.name === 'string' &&
         submission.name.length >= 1 &&
         submission.name.length <= 20 &&
-        // Score validation
         typeof submission.score === 'number' &&
         Number.isInteger(submission.score) &&
         submission.score >= 0 &&
         submission.score <= 999999 &&
-        // Time validation
         typeof submission.time === 'number' &&
         Number.isInteger(submission.time) &&
         submission.time >= 0 &&
-        submission.time <= 3600 && // Max 1 hour
-        // Mode validation
+        submission.time <= 3600 &&
         typeof submission.mode === 'string' &&
         validModes.includes(submission.mode.toLowerCase()));
 };
-// Submit score endpoint
 app.post('/api/scores', (req, res) => {
     let client = null;
     (async () => {
@@ -183,7 +167,6 @@ app.post('/api/scores', (req, res) => {
                 ...req.body,
                 name: req.body.name ? '[REDACTED]' : undefined
             });
-            // Validate input
             if (!validateScoreData(req.body)) {
                 console.error('Invalid input data:', {
                     data: {
@@ -198,19 +181,20 @@ app.post('/api/scores', (req, res) => {
             const db = client.db('asciiman');
             const scores = db.collection('scores');
             const scoreData = {
-                name: sanitizeName(name).slice(0, 20), // Ensure max length
-                score: Math.min(Math.max(0, score), 999999), // Ensure within bounds
+                name: sanitizeName(name).slice(0, 20),
+                score: Math.min(Math.max(0, score), 999999),
                 time: Math.min(Math.max(0, time), 3600),
                 mode: mode.toLowerCase(),
                 timestamp: new Date()
             };
-            // Rate limiting check
-            const recentSubmissions = await scores.countDocuments({
-                name: scoreData.name,
-                timestamp: { $gt: new Date(Date.now() - 60000) } // Last minute
-            });
-            if (recentSubmissions >= 5) {
-                return res.status(429).json({ error: 'Too many submissions. Please wait.' });
+            if (process.env.NODE_ENV === 'production') {
+                const recentSubmissions = await scores.countDocuments({
+                    name: scoreData.name,
+                    timestamp: { $gt: new Date(Date.now() - 60000) }
+                });
+                if (recentSubmissions >= 5) {
+                    return res.status(429).json({ error: 'Too many submissions. Please wait.' });
+                }
             }
             console.log('Attempting to insert score:', {
                 ...scoreData,
@@ -240,16 +224,18 @@ app.post('/api/scores', (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     });
 });
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, '../dist')));
-// Handle client-side routing by serving index.html for all routes
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../dist')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../dist/index.html'));
+    });
+}
 app.listen(port, () => {
-    console.log(`Production server running on port ${port}`);
+    const environment = process.env.NODE_ENV === 'production' ? 'Production' : 'Development';
+    console.log(`${environment} server running on port ${port}`);
     console.log('Environment variables loaded:', {
         hasConnectionString: !!process.env.AZURE_COSMOS_CONNECTIONSTRING,
-        port: port
+        port: port,
+        nodeEnv: process.env.NODE_ENV || 'development'
     });
 });

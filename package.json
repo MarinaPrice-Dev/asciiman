@@ -8,9 +8,9 @@
     "dev:server": "tsx watch server/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "tsc -b && vite build && npm run build:server",
-    "build:server": "tsc -p server/tsconfig.json",
-    "start": "node dist-server/prod.js",
-    "start:prod": "NODE_ENV=production node dist-server/prod.js",
+    "build:server": "tsc -p server/tsconfig.json && mv dist-server/server/index.js dist-server/server.js && rmdir dist-server/server",
+    "start": "node dist-server/server.js",
+    "start:prod": "NODE_ENV=production node dist-server/server.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
