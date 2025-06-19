@@ -111,7 +111,7 @@ const GameBoard = styled.pre`
   line-height: 1;
   letter-spacing: 1.2px;
   margin: 0;
-  font-size: min(18px, 2.4vh);
+  font-size: min(20px, 2.4vh);
   background: #111;
   border-radius: 6px;
   padding: 6px 3px 3px 3px;
