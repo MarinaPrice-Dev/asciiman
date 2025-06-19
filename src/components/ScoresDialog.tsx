@@ -153,31 +153,35 @@ const ScoresDialog: React.FC<Props> = ({ onClose }) => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<DifficultyFilter>('all');
 
-  useEffect(() => {
-    const fetchScores = async () => {
-      try {
-        const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
-        const response = await fetch(`${baseUrl}/api/scores`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch scores');
-        }
-        
-        setScores(data.scores);
-      } catch (error) {
-        console.error('Error fetching scores:', error);
-        setError('Failed to load scores');
-      } finally {
-        setLoading(false);
+  const fetchScores = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+      const url = filter === 'all' 
+        ? `${baseUrl}/api/scores`
+        : `${baseUrl}/api/scores?difficulty=${filter}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch scores');
       }
-    };
+      
+      setScores(data.scores);
+    } catch (error) {
+      console.error('Error fetching scores:', error);
+      setError('Failed to load scores');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchScores();
-  }, []);
+  }, [filter]); // Re-fetch when filter changes
 
   const filteredScores = scores
-    .filter(score => filter === 'all' || score.mode.toLowerCase() === filter)
     .sort((a, b) => b.score - a.score);
 
   return (
