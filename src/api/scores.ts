@@ -1,10 +1,16 @@
-// Types
+/// <reference types="vite/client" />
+
 export interface GameScore {
   name: string;
   score: number;
   time: number;
   mode: string;
   timestamp: Date;
+}
+
+interface ServerError {
+  details?: string;
+  error?: string;
 }
 
 // Sanitize name to only allow alphanumeric characters
@@ -27,7 +33,7 @@ export const submitScore = async (scoreData: Omit<GameScore, 'timestamp'>): Prom
       body: JSON.stringify(scoreData),
     });
 
-    const data = await response.json();
+    const data = await response.json() as ServerError;
 
     if (!response.ok) {
       console.error('Server response:', data);
