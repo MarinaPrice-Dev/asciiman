@@ -281,19 +281,36 @@ const Game: React.FC = () => {
       }
 
       // Check for collision with ghosts
-      const collision = newGhosts.some(
+      const collidingGhostIndex = newGhosts.findIndex(
         ghost =>
           ghost.position.x === prevState.pacman.x &&
           ghost.position.y === prevState.pacman.y
       );
 
-      if (collision) {
-        return { ...prevState, gameOver: true, ghosts: newGhosts };
+      // Handle ghost collision based on invincibility
+      if (collidingGhostIndex !== -1) {
+        if (prevState.isInvincible) {
+          // Eat the ghost and reset its position
+          const ghost = newGhosts[collidingGhostIndex];
+          newGhosts[collidingGhostIndex] = {
+            ...ghost,
+            position: DIFFICULTY_CONFIGS[difficulty].ghosts[collidingGhostIndex].position,
+          };
+
+          return {
+            ...prevState,
+            ghosts: newGhosts,
+            score: prevState.score + DIFFICULTY_CONFIGS[difficulty].specialFoodScore, // Points for eating ghost
+          };
+        } else {
+          // Not invincible, game over
+          return { ...prevState, gameOver: true, ghosts: newGhosts };
+        }
       }
 
       return { ...prevState, ghosts: newGhosts };
     });
-  }, []);
+  }, [difficulty]);
 
   useEffect(() => {
     const ghostInterval = setInterval(moveGhosts, 100);
@@ -351,33 +368,33 @@ const Game: React.FC = () => {
             ghost.position.y === newPosition.y
         );
 
-        // If invincible and colliding with ghost, eat the ghost
-        if (prevState.isInvincible && collidingGhostIndex !== -1) {
-          const newGhosts = [...prevState.ghosts];
-          const ghost = newGhosts[collidingGhostIndex];
-          // Reset ghost to initial position
-          newGhosts[collidingGhostIndex] = {
-            ...ghost,
-            position: DIFFICULTY_CONFIGS[difficulty].ghosts[collidingGhostIndex].position,
-          };
+        // Handle ghost collision based on invincibility
+        if (collidingGhostIndex !== -1) {
+          if (prevState.isInvincible) {
+            // Eat the ghost and reset its position
+            const newGhosts = [...prevState.ghosts];
+            const ghost = newGhosts[collidingGhostIndex];
+            newGhosts[collidingGhostIndex] = {
+              ...ghost,
+              position: DIFFICULTY_CONFIGS[difficulty].ghosts[collidingGhostIndex].position,
+            };
 
-          return {
-            ...prevState,
-            pacman: newPosition,
-            food: newFood,
-            specialFood: newSpecialFood,
-            ghosts: newGhosts,
-            score: prevState.score + 
-              (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0) +
-              (specialFoodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0) +
-              (collidingGhostIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0),
-            isInvincible: specialFoodIndex !== -1 ? true : prevState.isInvincible,
-          };
-        }
-
-        // If not invincible and colliding with ghost, game over
-        if (!prevState.isInvincible && collidingGhostIndex !== -1) {
-          return { ...prevState, gameOver: true };
+            return {
+              ...prevState,
+              pacman: newPosition,
+              food: newFood,
+              specialFood: newSpecialFood,
+              ghosts: newGhosts,
+              score: prevState.score + 
+                (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0) +
+                (specialFoodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0) +
+                DIFFICULTY_CONFIGS[difficulty].specialFoodScore, // Points for eating ghost
+              isInvincible: specialFoodIndex !== -1 ? true : prevState.isInvincible,
+            };
+          } else {
+            // Not invincible, game over
+            return { ...prevState, gameOver: true };
+          }
         }
 
         // Check win condition
@@ -395,6 +412,7 @@ const Game: React.FC = () => {
           };
         }
 
+        // No collision, just update position and score
         return {
           ...prevState,
           pacman: newPosition,
