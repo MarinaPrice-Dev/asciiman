@@ -35,8 +35,12 @@ jobs:
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist/
+          name: node-app
+          path: |
+            dist/
+            dist-server/
+            package.json
+            package-lock.json
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,8 +56,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: node-app
+          path: .
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -68,5 +72,12 @@ jobs:
         with:
           app-name: 'asciiman'
           slot-name: 'Production'
-          package: ./dist
+          package: .
+          
+      - name: 'Install production dependencies'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'asciiman'
+          slot-name: 'Production'
+          startup-command: 'npm ci --only=production && npm start'
           

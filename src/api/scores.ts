@@ -15,7 +15,9 @@ export const sanitizeName = (name: string): string => {
 // Submit score to backend API
 export const submitScore = async (scoreData: Omit<GameScore, 'timestamp'>): Promise<void> => {
   try {
-    const response = await fetch('http://localhost:3001/api/scores', {
+    // In development, use localhost. In production, use relative path
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+    const response = await fetch(`${baseUrl}/api/scores`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
