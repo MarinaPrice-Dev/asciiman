@@ -145,6 +145,14 @@ const GameMessage = styled.div`
   text-align: center;
 `;
 
+const StatsMessage = styled.div`
+  font-size: 1rem;
+  color: #aaa;
+  margin: 8px 0;
+  text-align: center;
+  line-height: 1.5;
+`;
+
 const DialogOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -729,6 +737,10 @@ const Game: React.FC = () => {
                 onChange={(e) => setPlayerName(e.target.value)}
                 maxLength={20}
               />
+              <StatsMessage>
+                Score: {gameState.score} points<br/>
+                Time: {timer} seconds
+              </StatsMessage>
               <DialogButtonRow>
                 <DialogButton 
                   onClick={handleSubmitScore}
