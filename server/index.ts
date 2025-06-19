@@ -23,9 +23,29 @@ const getMongoClient = async (): Promise<MongoClient> => {
 
   console.log('Attempting to connect to MongoDB...');
   try {
-    const client = new MongoClient(connectionString);
+    const client = new MongoClient(connectionString, {
+      // Azure Cosmos DB specific settings
+      tls: true,
+      replicaSet: 'globaldb',
+      readPreference: 'primary',
+      retryWrites: false,
+      directConnection: true
+    });
+    
     await client.connect();
     console.log('Successfully connected to MongoDB');
+
+    // Ensure index exists
+    const db = client.db('asciiman');
+    const scores = db.collection<GameScore>('scores');
+    
+    try {
+      await scores.createIndex({ score: -1 });
+      console.log('Index on score field created or already exists');
+    } catch (error) {
+      console.warn('Failed to create index, but continuing:', error);
+    }
+
     return client;
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
@@ -52,14 +72,15 @@ app.get('/api/scores', async (req, res) => {
     const db = client.db('asciiman');
     const scores = db.collection<GameScore>('scores');
 
-    // Get the latest 10 scores, sorted by score (highest first)
-    const latestScores = await scores.find()
-      .sort({ score: -1 })
-      .limit(10)
-      .toArray();
+    // Get all scores first, then sort in memory
+    // This is a workaround for Cosmos DB's sorting limitations
+    const allScores = await scores.find().toArray();
+    const sortedScores = allScores
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
 
     res.json({
-      scores: latestScores.map(score => ({
+      scores: sortedScores.map(score => ({
         ...score,
         name: score.name // In a real app, you might want to mask this
       }))
