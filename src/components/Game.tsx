@@ -4,6 +4,7 @@ import type { GameState, Direction, Ghost } from '../types/game';
 import { COLORS } from '../types/game';
 import { MAZE_LAYOUT } from '../constants/maze';
 import { submitScore, sanitizeName } from '../api/scores';
+import ScoresDialog from './ScoresDialog';
 import {
   isValidPosition,
   movePosition,
@@ -237,10 +238,31 @@ const DialogButtonRow = styled.div`
   margin-top: 16px;
 `;
 
+const ScoresButton = styled.button`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 2px solid #ffd700;
+  background: transparent;
+  color: #ffd700;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(255, 215, 0, 0.1);
+    transform: translateY(-1px);
+  }
+`;
+
 const Game: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showScores, setShowScores] = useState(false);
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
     ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
@@ -656,6 +678,9 @@ const Game: React.FC = () => {
   return (
     <GameContainer>
       <Header>AsciiMan</Header>
+      <ScoresButton onClick={() => setShowScores(true)}>
+        🏆 High Scores
+      </ScoresButton>
       <DifficultySelector>
         <DifficultyLabel>Difficulty:</DifficultyLabel>
         <DifficultyButton
@@ -719,6 +744,9 @@ const Game: React.FC = () => {
           </DialogOverlay>
         )}
       </GameCard>
+      {showScores && (
+        <ScoresDialog onClose={() => setShowScores(false)} />
+      )}
     </GameContainer>
   );
 };
