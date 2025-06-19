@@ -30,7 +30,7 @@ const DIFFICULTY_CONFIGS = {
     specialFoodScore: 60,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
-      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 280, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 250, lastMoved: 0 },
       { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 12, lockOnTimer: 0, speed: 350, lastMoved: 0 },
       { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 10, lockOnTimer: 0, speed: 350, lastMoved: 0 },
     ] as Ghost[],
@@ -40,7 +40,7 @@ const DIFFICULTY_CONFIGS = {
     specialFoodScore: 75,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 230, lastMoved: 0 },
-      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 25, lockOnTimer: 0, speed: 230, lastMoved: 0 },
       { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
       { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
     ] as Ghost[],
