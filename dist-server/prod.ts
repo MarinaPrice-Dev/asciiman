@@ -77,13 +77,18 @@ app.get('/api/scores', async (req, res) => {
   let client: MongoClient | null = null;
   
   try {
+    const { difficulty } = req.query;
+    const filterDifficulty = typeof difficulty === 'string' ? difficulty.toLowerCase() : 'all';
+    
     client = await getMongoClient();
     const db = client.db('asciiman');
     const scores = db.collection<GameScore>('scores');
 
-    // Get all scores first, then sort in memory
-    // This is a workaround for Cosmos DB's sorting limitations
-    const allScores = await scores.find().toArray();
+    // Build query filter
+    const queryFilter = filterDifficulty === 'all' ? {} : { mode: filterDifficulty };
+
+    // Get scores with optional difficulty filter
+    const allScores = await scores.find(queryFilter).toArray();
     const sortedScores = allScores
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
