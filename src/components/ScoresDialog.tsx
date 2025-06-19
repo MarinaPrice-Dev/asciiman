@@ -18,11 +18,13 @@ const DialogOverlay = styled.div`
 const DialogBox = styled.div`
   background: #222;
   color: #fff;
-  padding: 24px;
+  padding: 16px;
   border-radius: 10px;
   box-shadow: 0 3px 16px #000a;
-  min-width: 500px;
+  min-width: min(500px, 90vw);
   max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
 `;
 
@@ -30,11 +32,17 @@ const DialogHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 0;
+  background: #222;
+  z-index: 1;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
 `;
 
 const DialogTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: min(1.5rem, 4vh);
   color: #ffd700;
   margin: 0;
   flex-grow: 1;
@@ -44,10 +52,11 @@ const DialogTitle = styled.h2`
 const ScoresTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
+  margin: 16px 0;
+  font-size: min(1rem, 2.2vh);
   
   th, td {
-    padding: 8px 12px;
+    padding: 6px 8px;
     text-align: left;
     border-bottom: 1px solid #444;
   }
@@ -55,6 +64,10 @@ const ScoresTable = styled.table`
   th {
     color: #ffd700;
     font-weight: bold;
+    position: sticky;
+    top: 57px;
+    background: #222;
+    z-index: 1;
   }
   
   tr:last-child td {
@@ -64,18 +77,36 @@ const ScoresTable = styled.table`
   tr:hover td {
     background: #333;
   }
+
+  @media (max-width: 600px) {
+    th:nth-child(4), td:nth-child(4) { /* Hide Time column on small screens */
+      display: none;
+    }
+  }
+
+  @media (max-width: 400px) {
+    th:nth-child(5), td:nth-child(5) { /* Hide Difficulty column on very small screens */
+      display: none;
+    }
+  }
 `;
 
 const FilterRow = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 12px;
   justify-content: center;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 57px;
+  background: #222;
+  z-index: 1;
+  padding: 8px 0;
 `;
 
 const FilterButton = styled.button<{ active: boolean }>`
-  padding: 6px 12px;
-  font-size: 0.9rem;
+  padding: 4px 8px;
+  font-size: min(0.9rem, 2vh);
   border-radius: 4px;
   border: 2px solid ${props => props.active ? '#ffd700' : '#444'};
   background: ${props => props.active ? '#ffd700' : 'transparent'};
@@ -94,12 +125,12 @@ const CloseButton = styled.button`
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: min(1.5rem, 3vh);
   cursor: pointer;
   padding: 4px;
   margin-left: 8px;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;

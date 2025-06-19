@@ -68,18 +68,19 @@ const GameContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 20px 20px 20px;
+  padding: 0 10px 10px 10px;
   background-color: black;
   color: white;
   font-family: monospace;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 `;
 
 const Header = styled.h1`
-  font-size: 2.2rem;
+  font-size: min(2.2rem, 5vh);
   font-weight: bold;
   letter-spacing: 1px;
-  margin-bottom: 12px;
+  margin: 8px 0;
   color: #ffd700;
   text-shadow: 1px 1px 4px #000a;
 `;
@@ -87,53 +88,55 @@ const Header = styled.h1`
 const StatsRow = styled.div`
   display: flex;
   flex-direction: row;
-  gap: 16px;
+  gap: 14px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 `;
 
 const GameCard = styled.div`
   background: #181818;
   border-radius: 12px;
   box-shadow: 0 3px 16px #000a;
-  padding: 18px 12px 12px 12px;
+  padding: 12px 8px 8px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 0;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
 `;
 
 const GameBoard = styled.pre`
   line-height: 1;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   margin: 0;
-  font-size: 18px;
+  font-size: min(18px, 2.4vh);
   background: #111;
   border-radius: 6px;
-  padding: 8px 4px 4px 4px;
+  padding: 6px 3px 3px 3px;
   box-shadow: 0 1px 6px #0006;
 `;
 
 const Score = styled.div`
-  font-size: 1.2rem;
+  font-size: min(1.2rem, 2.5vh);
   font-weight: bold;
   color: #ffd700;
-  width: 140px;
+  width: 120px;
   text-align: left;
 `;
 
 const Timer = styled.div`
-  font-size: 1rem;
+  font-size: min(1rem, 2.2vh);
   color: #fff;
-  width: 75px;
+  width: 65px;
   text-align: left;
 `;
 
 const BestStats = styled.div`
-  font-size: 0.95rem;
+  font-size: min(0.95rem, 2vh);
   color: #aaa;
-  width: 220px;
+  width: 200px;
   text-align: center;
 `;
 
@@ -198,14 +201,16 @@ const DialogButton = styled.button`
 
 const DifficultySelector = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin: 8px 0;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 `;
 
 const DifficultyButton = styled.button<{ active: boolean; insane?: boolean }>`
-  padding: 6px 12px;
-  font-size: 0.9rem;
+  padding: 4px 8px;
+  font-size: min(0.9rem, 2vh);
   border-radius: 4px;
   border: 2px solid ${props => props.active ? (props.insane ? '#ff3333' : '#ffd700') : '#444'};
   background: ${props => props.active ? (props.insane ? '#ff3333' : '#ffd700') : 'transparent'};
@@ -220,9 +225,9 @@ const DifficultyButton = styled.button<{ active: boolean; insane?: boolean }>`
 `;
 
 const DifficultyLabel = styled.span`
-  font-size: 0.9rem;
+  font-size: min(0.9rem, 2vh);
   color: #aaa;
-  margin-right: 8px;
+  margin-right: 6px;
 `;
 
 const DialogInput = styled.input`
@@ -248,10 +253,10 @@ const DialogButtonRow = styled.div`
 
 const ScoresButton = styled.button`
   position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 16px;
-  font-size: 1rem;
+  top: 10px;
+  right: 10px;
+  padding: 6px 12px;
+  font-size: min(1rem, 2.2vh);
   border-radius: 6px;
   border: 2px solid #ffd700;
   background: transparent;
