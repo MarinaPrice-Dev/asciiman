@@ -153,7 +153,7 @@ const ScoresDialog: React.FC<Props> = ({ onClose }) => {
     <DialogOverlay onClick={e => e.target === e.currentTarget && onClose()}>
       <DialogBox>
         <DialogHeader>
-          <DialogTitle>🏆 High Scores</DialogTitle>
+          <DialogTitle>🏆 Global High Scores</DialogTitle>
           <CloseButton onClick={onClose}>×</CloseButton>
         </DialogHeader>
         

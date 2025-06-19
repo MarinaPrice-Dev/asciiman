@@ -679,7 +679,7 @@ const Game: React.FC = () => {
     <GameContainer>
       <Header>AsciiMan</Header>
       <ScoresButton onClick={() => setShowScores(true)}>
-        🏆 High Scores
+        🏆 Global High Scores
       </ScoresButton>
       <DifficultySelector>
         <DifficultyLabel>Difficulty:</DifficultyLabel>
