@@ -58,7 +58,6 @@ const CommitCount = styled.div`
 
 const Description = styled.div`
   font-size: min(0.9rem, 2vh);
-  color: #ccc;
   line-height: 1.5;
   margin-bottom: 16px;
   padding: 12px;
@@ -94,14 +93,10 @@ const PromptsList = styled.div`
 `;
 
 const PromptItem = styled.div`
-  background: #333;
+  background: #2a2a2a;
   border-radius: 8px;
   padding: 12px;
   border-left: 4px solid #ffd700;
-  
-  &:hover {
-    background: #3a3a3a;
-  }
 `;
 
 const PromptNumber = styled.div`
@@ -172,7 +167,8 @@ const commitMessages = [
   "Add difficulty filtering to global scores dialog - Modified /api/scores endpoint to support query parameters for difficulty filtering - Updated ScoresDialog to fetch fresh scores from server when difficulty filter changes - Server now returns top 10 scores for specific difficulty when filter is applied - Maintains existing behavior for 'all' filter (top 10 global scores) - Removed client-side filtering since server now handles it",
   "manual change: improve maze",
   "Fix difficulty filtering in deployed server files - Added difficulty query parameter support to all production server files - Updated dist-server/prod.js, dist-server/index.js, dist-server/prod.ts - Updated dist-server/server/prod.js, dist-server/server/index.js - Now deployed version properly filters scores by difficulty level - Maintains backward compatibility with 'all' filter showing global top 10",
-  "Refactor: consolidate all server logic into server/index.ts, remove duplication, update build and deployment scripts. All server logic is now in server/index.ts. Build outputs to dist-server/server.js. web.config and scripts updated to use new structure. Deleted all old/dead server files. Much simpler, safer, and easier to maintain."
+  "Refactor: consolidate all server logic into server/index.ts, remove duplication, update build and deployment scripts. All server logic is now in server/index.ts. Build outputs to dist-server/server.js. web.config and scripts updated to use new structure. Deleted all old/dead server files. Much simpler, safer, and easier to maintain.",
+  "can you take all of my commit messages, order by oldest first, create a dialog called AI Prompts, with a button on the UI to open it, and list all the commit messages in there"
 ];
 
 const AIPromptsDialog: React.FC<Props> = ({ onClose }) => {
@@ -188,8 +184,7 @@ const AIPromptsDialog: React.FC<Props> = ({ onClose }) => {
         
         <Description>
           This game was an AI experiment. It was mainly made using Cursor (with manual setup of the infrastructure). I have included all the successful prompts that made this game.
-          <br /><br />
-          There were many failed prompts that were rolled back. The code is pretty awful to maintain as it does not follow the coding practices of experienced engineers, and it gets more difficult to prompt engineer as the codebase gets bigger. But it works.
+          <br />
         </Description>
         
         <PromptsList>
