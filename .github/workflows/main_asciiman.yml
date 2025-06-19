@@ -78,14 +78,14 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'asciiman-hmexechchsavd4hx'
+          app-name: 'asciiman'
           slot-name: 'Production'
           package: .
 
       - name: 'Configure startup command'
         uses: azure/appservice-settings@v1
         with:
-          app-name: 'asciiman-hmexechchsavd4hx'
+          app-name: 'asciiman'
           app-settings-json: |
             [
               {
@@ -114,7 +114,7 @@ jobs:
       - name: 'Start application'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'asciiman-hmexechchsavd4hx'
+          app-name: 'asciiman'
           slot-name: 'Production'
           startup-command: 'cd /home/site/wwwroot && npm ci --only=production && npm start'
           
