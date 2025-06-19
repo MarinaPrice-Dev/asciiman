@@ -494,7 +494,7 @@ const Game: React.FC = () => {
           isInvincible: false,
           invincibleTimer: undefined,
         }));
-      }, 6000); // 6 seconds
+      }, 5000); // 5 seconds
       return () => clearTimeout(timer);
     }
   }, [gameState.isInvincible]);
