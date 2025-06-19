@@ -57,64 +57,39 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
           path: .
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CC54C1E9B63B46F9BB0AA7B48EC77C7F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_30CCA3CC3A6643A6816E9C528DA8D515 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_70E23BD1D7824868AB664E9F2FCB4D1C }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Set app settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'asciiman'
+          app-settings-json: |
+            [
+              { "name": "NODE_ENV", "value": "production", "slotSetting": false },
+              { "name": "WEBSITE_NODE_DEFAULT_VERSION", "value": "18.x", "slotSetting": false },
+              { "name": "STARTUP_COMMAND", "value": "cd /home/site/wwwroot && npm ci --only=production && npm start", "slotSetting": false }
+            ]
+          mask-inputs: false
+
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'asciiman'
           slot-name: 'Production'
           package: .
-
-      - name: 'Configure startup command'
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: 'asciiman'
-          app-settings-json: |
-            [
-              {
-                "name": "WEBSITE_RUN_FROM_PACKAGE",
-                "value": "0",
-                "slotSetting": false
-              },
-              {
-                "name": "NODE_ENV",
-                "value": "production",
-                "slotSetting": false
-              },
-              {
-                "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                "value": "18.x",
-                "slotSetting": false
-              },
-              {
-                "name": "WEBSITE_NPM_DEFAULT_VERSION",
-                "value": "10.2.4",
-                "slotSetting": false
-              }
-            ]
-          mask-inputs: false
-
-      - name: 'Start application'
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'asciiman'
-          slot-name: 'Production'
-          startup-command: 'cd /home/site/wwwroot && npm ci --only=production && npm start'
-          
