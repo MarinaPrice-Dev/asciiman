@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MongoClient } from 'mongodb';
-import type { GameScore } from '../src/api/scores.js';
+import type { GameScore } from '../src/api/scores';
 
 dotenv.config();
 

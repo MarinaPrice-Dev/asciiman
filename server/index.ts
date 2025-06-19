@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { MongoClient } from 'mongodb';
-import type { GameScore } from '../src/api/scores';
+import type { GameScore } from '../src/api/scores.js';
 
 dotenv.config();
 

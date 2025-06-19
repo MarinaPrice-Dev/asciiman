@@ -31,16 +31,24 @@ jobs:
         run: npm run build
         env:
           CI: false # Prevent treating warnings as errors
+          NODE_ENV: production
+
+      - name: Prepare deployment package
+        run: |
+          mkdir deployment
+          cp -r dist/ deployment/
+          cp -r dist-server/ deployment/
+          cp package.json deployment/
+          cp package-lock.json deployment/
+          cp web.config deployment/
+          cp .deployment deployment/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            dist/
-            dist-server/
-            package.json
-            package-lock.json
+          path: deployment/
+          retention-days: 1
 
   deploy:
     runs-on: ubuntu-latest
@@ -70,14 +78,43 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'asciiman'
+          app-name: 'asciiman-hmexechchsavd4hx'
           slot-name: 'Production'
           package: .
-          
-      - name: 'Install production dependencies'
+
+      - name: 'Configure startup command'
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'asciiman-hmexechchsavd4hx'
+          app-settings-json: |
+            [
+              {
+                "name": "WEBSITE_RUN_FROM_PACKAGE",
+                "value": "0",
+                "slotSetting": false
+              },
+              {
+                "name": "NODE_ENV",
+                "value": "production",
+                "slotSetting": false
+              },
+              {
+                "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                "value": "18.x",
+                "slotSetting": false
+              },
+              {
+                "name": "WEBSITE_NPM_DEFAULT_VERSION",
+                "value": "10.2.4",
+                "slotSetting": false
+              }
+            ]
+          mask-inputs: false
+
+      - name: 'Start application'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'asciiman'
+          app-name: 'asciiman-hmexechchsavd4hx'
           slot-name: 'Production'
-          startup-command: 'npm ci --only=production && npm start'
+          startup-command: 'cd /home/site/wwwroot && npm ci --only=production && npm start'
           

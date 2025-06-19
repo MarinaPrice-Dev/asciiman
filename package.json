@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "server": "tsx watch server/index.ts",
-    "build": "tsc -b && vite build && tsc -p server/tsconfig.json && npm run copy-prod",
+    "build": "tsc -b && vite build && npm run build:server",
     "build:server": "tsc -p server/tsconfig.json",
     "copy-prod": "cp server/prod.ts dist-server/ && cd dist-server && tsc prod.ts --esModuleInterop --module ESNext",
     "start": "node dist-server/prod.js",
