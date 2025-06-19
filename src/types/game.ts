@@ -21,9 +21,12 @@ export type GameState = {
   pacman: Position;
   ghosts: Ghost[];
   food: Position[];
+  specialFood: Position[];
   score: number;
   gameOver: boolean;
   won: boolean;
+  isInvincible: boolean;
+  invincibleTimer?: number;
 };
 
 export const GAME_WIDTH = 28;

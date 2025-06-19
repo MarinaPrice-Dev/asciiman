@@ -15,6 +15,7 @@ type Difficulty = 'easy' | 'medium' | 'hard' | 'insane';
 const DIFFICULTY_CONFIGS = {
   easy: {
     foodScore: 10,
+    specialFoodScore: 50,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
       { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
@@ -24,6 +25,7 @@ const DIFFICULTY_CONFIGS = {
   },
   medium: {
     foodScore: 12,
+    specialFoodScore: 60,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
       { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 280, lastMoved: 0 },
@@ -33,6 +35,7 @@ const DIFFICULTY_CONFIGS = {
   },
   hard: {
     foodScore: 15,
+    specialFoodScore: 75,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 230, lastMoved: 0 },
       { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
@@ -42,6 +45,7 @@ const DIFFICULTY_CONFIGS = {
   },
   insane: {
     foodScore: 20,
+    specialFoodScore: 100,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 30, lockOnTimer: 0, speed: 180, lastMoved: 0 },
       { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 30, lockOnTimer: 0, speed: 200, lastMoved: 0 },
@@ -50,6 +54,13 @@ const DIFFICULTY_CONFIGS = {
     ] as Ghost[],
   },
 };
+
+const SPECIAL_FOOD_POSITIONS = [
+  { x: 1, y: 1 },    // Top left
+  { x: 26, y: 1 },   // Top right
+  { x: 1, y: 29 },   // Bottom left
+  { x: 26, y: 29 },  // Bottom right
+];
 
 const GameContainer = styled.div`
   display: flex;
@@ -208,11 +219,13 @@ const Game: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
-    ghosts: DIFFICULTY_CONFIGS.easy.ghosts,
+    ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
     food: getInitialFood(),
+    specialFood: SPECIAL_FOOD_POSITIONS,
     score: 0,
     gameOver: false,
     won: false,
+    isInvincible: false,
   });
 
   const [timer, setTimer] = useState(0);
@@ -322,33 +335,75 @@ const Game: React.FC = () => {
           newFood.splice(foodIndex, 1);
         }
 
-        // Check win condition
-        if (newFood.length === 0) {
-          return {
-            ...prevState,
-            pacman: newPosition,
-            food: newFood,
-            score: prevState.score + (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0),
-            won: true,
-          };
+        // Check for special food collection
+        const specialFoodIndex = prevState.specialFood.findIndex(
+          f => f.x === newPosition.x && f.y === newPosition.y
+        );
+        const newSpecialFood = [...prevState.specialFood];
+        if (specialFoodIndex !== -1) {
+          newSpecialFood.splice(specialFoodIndex, 1);
         }
 
-        // Check ghost collision
-        const collision = prevState.ghosts.some(
+        // Check for ghost collision
+        const collidingGhostIndex = prevState.ghosts.findIndex(
           ghost =>
             ghost.position.x === newPosition.x &&
             ghost.position.y === newPosition.y
         );
 
-        if (collision) {
+        // If invincible and colliding with ghost, eat the ghost
+        if (prevState.isInvincible && collidingGhostIndex !== -1) {
+          const newGhosts = [...prevState.ghosts];
+          const ghost = newGhosts[collidingGhostIndex];
+          // Reset ghost to initial position
+          newGhosts[collidingGhostIndex] = {
+            ...ghost,
+            position: DIFFICULTY_CONFIGS[difficulty].ghosts[collidingGhostIndex].position,
+          };
+
+          return {
+            ...prevState,
+            pacman: newPosition,
+            food: newFood,
+            specialFood: newSpecialFood,
+            ghosts: newGhosts,
+            score: prevState.score + 
+              (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0) +
+              (specialFoodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0) +
+              (collidingGhostIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0),
+            isInvincible: specialFoodIndex !== -1 ? true : prevState.isInvincible,
+          };
+        }
+
+        // If not invincible and colliding with ghost, game over
+        if (!prevState.isInvincible && collidingGhostIndex !== -1) {
           return { ...prevState, gameOver: true };
+        }
+
+        // Check win condition
+        if (newFood.length === 0 && newSpecialFood.length === 0) {
+          return {
+            ...prevState,
+            pacman: newPosition,
+            food: newFood,
+            specialFood: newSpecialFood,
+            score: prevState.score + 
+              (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0) +
+              (specialFoodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0),
+            won: true,
+            isInvincible: specialFoodIndex !== -1 ? true : prevState.isInvincible,
+          };
         }
 
         return {
           ...prevState,
           pacman: newPosition,
           food: newFood,
-          score: prevState.score + (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0),
+          specialFood: newSpecialFood,
+          score: prevState.score + 
+            (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0) +
+            (specialFoodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].specialFoodScore : 0),
+          isInvincible: specialFoodIndex !== -1 ? true : prevState.isInvincible,
         };
       });
     },
@@ -412,15 +467,31 @@ const Game: React.FC = () => {
     }
   }, [gameState.won, gameState.gameOver, gameState.score, timer, bestScore]);
 
+  // Handle invincibility timer
+  useEffect(() => {
+    if (gameState.isInvincible) {
+      const timer = setTimeout(() => {
+        setGameState(prevState => ({
+          ...prevState,
+          isInvincible: false,
+          invincibleTimer: undefined,
+        }));
+      }, 6000); // 6 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.isInvincible]);
+
   // Dialog: restart game
   const handleRestart = () => {
     setGameState({
       pacman: { x: 14, y: 23 },
       ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
       food: getInitialFood(),
+      specialFood: SPECIAL_FOOD_POSITIONS,
       score: 0,
       gameOver: false,
       won: false,
+      isInvincible: false,
     });
     setTimer(0);
     setShowDialog(false);
@@ -433,9 +504,11 @@ const Game: React.FC = () => {
       pacman: { x: 14, y: 23 },
       ghosts: DIFFICULTY_CONFIGS[newDifficulty].ghosts,
       food: getInitialFood(),
+      specialFood: SPECIAL_FOOD_POSITIONS,
       score: 0,
       gameOver: false,
       won: false,
+      isInvincible: false,
     });
     setTimer(0);
     setShowDialog(false);
@@ -457,6 +530,11 @@ const Game: React.FC = () => {
     // Place food only where it still exists
     gameState.food.forEach(({ x, y }) => {
       board[y][x] = '.';
+    });
+
+    // Place special food
+    gameState.specialFood.forEach(({ x, y }) => {
+      board[y][x] = '●';
     });
 
     // Remove dots from the maze where food has been eaten
@@ -482,13 +560,16 @@ const Game: React.FC = () => {
           let color = 'white';
           if (cell === '#') color = COLORS.WALL;
           if (cell === '.') color = COLORS.FOOD;
+          if (cell === '●') color = '#ffd700'; // Gold color for special food
           if (cell === 'C') color = COLORS.PACMAN;
           if (cell === '@') {
             const ghost = gameState.ghosts.find(
               g => g.position.x === j && g.position.y === i
             );
             if (ghost) {
-              if (ghost.lockOn && blink) {
+              if (gameState.isInvincible) {
+                color = '#0077ff'; // Blue color for vulnerable ghosts
+              } else if (ghost.lockOn && blink) {
                 color = '#fff'; // Blinking angry (white)
               } else {
                 color = ghost.color;
