@@ -1,0 +1,79 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
+import type { GameScore } from '../src/api/scores';
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const port = process.env.PORT || 3001;
+
+// Initialize MongoDB client
+const getMongoClient = async (): Promise<MongoClient> => {
+  const username = process.env.MONGODB_USERNAME;
+  const password = process.env.MONGODB_PASSWORD;
+  
+  if (!username || !password) {
+    throw new Error('MongoDB credentials not found in environment variables');
+  }
+
+  const uri = `mongodb://${username}:${password}@asciistudio-server.mongo.cosmos.azure.com:443/`;
+  const client = new MongoClient(uri, {
+    tls: true,
+    replicaSet: 'globaldb',
+    retryWrites: false,
+    maxIdleTimeMS: 120000,
+  });
+
+  await client.connect();
+  return client;
+};
+
+// Sanitize name to only allow alphanumeric characters
+const sanitizeName = (name: string): string => {
+  return name.replace(/[^a-zA-Z0-9]/g, '');
+};
+
+// Submit score endpoint
+app.post('/api/scores', async (req, res) => {
+  let client: MongoClient | null = null;
+  
+  try {
+    const { name, score, time, mode } = req.body;
+    
+    // Validate input
+    if (!name || typeof score !== 'number' || typeof time !== 'number' || !mode) {
+      return res.status(400).json({ error: 'Invalid input data' });
+    }
+
+    client = await getMongoClient();
+    const db = client.db('asciiman');
+    const scores = db.collection<GameScore>('scores');
+
+    const scoreData: GameScore = {
+      name: sanitizeName(name),
+      score,
+      time,
+      mode,
+      timestamp: new Date()
+    };
+
+    await scores.insertOne(scoreData);
+    res.status(201).json({ message: 'Score submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting score:', error);
+    res.status(500).json({ error: 'Failed to submit score' });
+  } finally {
+    if (client) {
+      await client.close();
+    }
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+}); 
