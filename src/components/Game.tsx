@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import type { GameState, Direction, Ghost } from '../types/game';
 import { COLORS } from '../types/game';
 import { MAZE_LAYOUT } from '../constants/maze';
+import { submitScore, sanitizeName } from '../api/scores';
 import {
   isValidPosition,
   movePosition,
@@ -215,8 +216,31 @@ const DifficultyLabel = styled.span`
   margin-right: 8px;
 `;
 
+const DialogInput = styled.input`
+  margin: 12px 0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 2px solid #444;
+  background: #333;
+  color: #fff;
+  width: 200px;
+  &:focus {
+    border-color: #ffd700;
+    outline: none;
+  }
+`;
+
+const DialogButtonRow = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+`;
+
 const Game: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
     ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
@@ -541,6 +565,34 @@ const Game: React.FC = () => {
     return () => clearInterval(blinkInterval);
   }, []);
 
+  // Handle score submission
+  const handleSubmitScore = async () => {
+    if (!playerName.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      const sanitizedName = sanitizeName(playerName);
+      await submitScore({
+        name: sanitizedName,
+        score: gameState.score,
+        time: timer,
+        mode: difficulty
+      });
+      
+      // Save name for future use
+      localStorage.setItem('playerName', sanitizedName);
+      
+      // Close dialog after successful submission
+      setShowDialog(false);
+      handleRestart();
+    } catch (error) {
+      console.error('Failed to submit score:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const renderGame = () => {
     // Start with the maze layout
     const board = MAZE_LAYOUT.map(row => [...row]);
@@ -645,7 +697,24 @@ const Game: React.FC = () => {
               <GameMessage color={dialogType === 'win' ? 'limegreen' : 'crimson'}>
                 {dialogType === 'win' ? '🎉 You Won!' : '💀 Game Over!'}
               </GameMessage>
-              <DialogButton onClick={handleRestart}>Continue</DialogButton>
+              <DialogInput
+                type="text"
+                placeholder="Enter your name"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={20}
+              />
+              <DialogButtonRow>
+                <DialogButton 
+                  onClick={handleSubmitScore}
+                  disabled={isSubmitting || !playerName.trim()}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Score'}
+                </DialogButton>
+                <DialogButton onClick={handleRestart}>
+                  {isSubmitting ? 'Please wait...' : 'Skip & Continue'}
+                </DialogButton>
+              </DialogButtonRow>
             </DialogBox>
           </DialogOverlay>
         )}
