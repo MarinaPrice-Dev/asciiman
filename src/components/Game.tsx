@@ -1,15 +1,46 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
 import styled from 'styled-components';
-import type { GameState, Direction } from '../types/game';
+import type { GameState, Direction, Ghost } from '../types/game';
 import { COLORS } from '../types/game';
 import { MAZE_LAYOUT } from '../constants/maze';
 import {
   isValidPosition,
   movePosition,
   getInitialFood,
-  getInitialGhostPositions,
   moveGhost,
 } from '../utils/gameUtils';
+
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+const DIFFICULTY_CONFIGS = {
+  easy: {
+    foodScore: 10,
+    ghosts: [
+      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 10, lockOnTimer: 0, speed: 400, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 6, lockOnTimer: 0, speed: 400, lastMoved: 0 },
+    ] as Ghost[],
+  },
+  medium: {
+    foodScore: 12,
+    ghosts: [
+      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 280, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 12, lockOnTimer: 0, speed: 350, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 10, lockOnTimer: 0, speed: 350, lastMoved: 0 },
+    ] as Ghost[],
+  },
+  hard: {
+    foodScore: 15,
+    ghosts: [
+      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 230, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+    ] as Ghost[],
+  },
+};
 
 const GameContainer = styled.div`
   display: flex;
@@ -135,10 +166,40 @@ const DialogButton = styled.button`
   }
 `;
 
+const DifficultySelector = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+`;
+
+const DifficultyButton = styled.button<{ active: boolean }>`
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  border: 2px solid ${props => props.active ? '#ffd700' : '#444'};
+  background: ${props => props.active ? '#ffd700' : 'transparent'};
+  color: ${props => props.active ? '#222' : '#fff'};
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    border-color: #ffd700;
+    background: ${props => props.active ? '#ffd700' : 'rgba(255, 215, 0, 0.1)'};
+  }
+`;
+
+const DifficultyLabel = styled.span`
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-right: 8px;
+`;
+
 const Game: React.FC = () => {
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
-    ghosts: getInitialGhostPositions(),
+    ghosts: DIFFICULTY_CONFIGS.easy.ghosts,
     food: getInitialFood(),
     score: 0,
     gameOver: false,
@@ -258,7 +319,7 @@ const Game: React.FC = () => {
             ...prevState,
             pacman: newPosition,
             food: newFood,
-            score: prevState.score + (foodIndex !== -1 ? 10 : 0),
+            score: prevState.score + (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0),
             won: true,
           };
         }
@@ -278,11 +339,11 @@ const Game: React.FC = () => {
           ...prevState,
           pacman: newPosition,
           food: newFood,
-          score: prevState.score + (foodIndex !== -1 ? 10 : 0),
+          score: prevState.score + (foodIndex !== -1 ? DIFFICULTY_CONFIGS[difficulty].foodScore : 0),
         };
       });
     },
-    [gameState.gameOver, gameState.won]
+    [gameState.gameOver, gameState.won, difficulty]
   );
 
   useEffect(() => {
@@ -346,7 +407,22 @@ const Game: React.FC = () => {
   const handleRestart = () => {
     setGameState({
       pacman: { x: 14, y: 23 },
-      ghosts: getInitialGhostPositions(),
+      ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
+      food: getInitialFood(),
+      score: 0,
+      gameOver: false,
+      won: false,
+    });
+    setTimer(0);
+    setShowDialog(false);
+    setDialogType(null);
+  };
+
+  const handleDifficultyChange = (newDifficulty: Difficulty) => {
+    setDifficulty(newDifficulty);
+    setGameState({
+      pacman: { x: 14, y: 23 },
+      ghosts: DIFFICULTY_CONFIGS[newDifficulty].ghosts,
       food: getInitialFood(),
       score: 0,
       gameOver: false,
@@ -420,6 +496,27 @@ const Game: React.FC = () => {
   return (
     <GameContainer>
       <Header>AsciiMan</Header>
+      <DifficultySelector>
+        <DifficultyLabel>Difficulty:</DifficultyLabel>
+        <DifficultyButton
+          active={difficulty === 'easy'}
+          onClick={() => handleDifficultyChange('easy')}
+        >
+          Easy
+        </DifficultyButton>
+        <DifficultyButton
+          active={difficulty === 'medium'}
+          onClick={() => handleDifficultyChange('medium')}
+        >
+          Medium
+        </DifficultyButton>
+        <DifficultyButton
+          active={difficulty === 'hard'}
+          onClick={() => handleDifficultyChange('hard')}
+        >
+          Hard
+        </DifficultyButton>
+      </DifficultySelector>
       <GameCard>
         <StatsRow>
           <Timer>⏱️ {timer}s</Timer>
