@@ -5,6 +5,7 @@ import { COLORS } from '../types/game';
 import { MAZE_LAYOUT } from '../constants/maze';
 import { submitScore, sanitizeName } from '../api/scores';
 import ScoresDialog from './ScoresDialog';
+import AIPromptsDialog from './AIPromptsDialog';
 import {
   isValidPosition,
   movePosition,
@@ -271,11 +272,32 @@ const ScoresButton = styled.button`
   }
 `;
 
+const AIPromptsButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 200px;
+  padding: 6px 12px;
+  font-size: min(1rem, 2.2vh);
+  border-radius: 6px;
+  border: 2px solid #00ff88;
+  background: transparent;
+  color: #00ff88;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(0, 255, 136, 0.1);
+    transform: translateY(-1px);
+  }
+`;
+
 const Game: React.FC = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showAIPrompts, setShowAIPrompts] = useState(false);
   const [gameState, setGameState] = useState<GameState>({
     pacman: { x: 14, y: 23 }, // Initial Pacman position
     ghosts: DIFFICULTY_CONFIGS[difficulty].ghosts,
@@ -698,6 +720,9 @@ const Game: React.FC = () => {
       <ScoresButton onClick={() => setShowScores(true)}>
         🏆 Global High Scores
       </ScoresButton>
+      <AIPromptsButton onClick={() => setShowAIPrompts(true)}>
+        🤖 AI Prompts
+      </AIPromptsButton>
       <DifficultySelector>
         <DifficultyLabel>Difficulty:</DifficultyLabel>
         <DifficultyButton
@@ -767,6 +792,9 @@ const Game: React.FC = () => {
       </GameCard>
       {showScores && (
         <ScoresDialog onClose={() => setShowScores(false)} />
+      )}
+      {showAIPrompts && (
+        <AIPromptsDialog onClose={() => setShowAIPrompts(false)} />
       )}
     </GameContainer>
   );
