@@ -274,8 +274,8 @@ const ScoresButton = styled.button`
 
 const AIPromptsButton = styled.button`
   position: absolute;
-  top: 10px;
-  right: 200px;
+  top: 50px;
+  right: 10px;
   padding: 6px 12px;
   font-size: min(1rem, 2.2vh);
   border-radius: 6px;

@@ -48,6 +48,25 @@ const DialogTitle = styled.h2`
   text-align: center;
 `;
 
+const CommitCount = styled.div`
+  font-size: min(1rem, 2.2vh);
+  color: #00ff88;
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: bold;
+`;
+
+const Description = styled.div`
+  font-size: min(0.9rem, 2vh);
+  color: #ccc;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  border-left: 4px solid #00ff88;
+`;
+
 const CloseButton = styled.button`
   background: transparent;
   border: none;
@@ -96,13 +115,6 @@ const PromptText = styled.div`
   font-size: min(0.95rem, 2.2vh);
   line-height: 1.4;
   color: #fff;
-`;
-
-const CommitHash = styled.div`
-  font-size: min(0.8rem, 1.8vh);
-  color: #888;
-  margin-top: 6px;
-  font-family: monospace;
 `;
 
 interface Props {
@@ -163,14 +175,6 @@ const commitMessages = [
   "Refactor: consolidate all server logic into server/index.ts, remove duplication, update build and deployment scripts. All server logic is now in server/index.ts. Build outputs to dist-server/server.js. web.config and scripts updated to use new structure. Deleted all old/dead server files. Much simpler, safer, and easier to maintain."
 ];
 
-const commitHashes = [
-  "c31052d", "72bceea", "0d9cbfd", "8554c7f", "7532ecf", "97a27b3", "5d80b41", "4d5041f", "4a552e3", "7e2aa74",
-  "7969816", "f5f0344", "9199935", "ad59cc3", "ff2ab7a", "575d2da", "86760c3", "6333691", "9254a8e", "aee4307",
-  "95fd449", "d6448ca", "3a8836b", "aaa8502", "b2706ec", "eb1d973", "6477d38", "b4c9987", "1e34d68", "067a70e",
-  "e028540", "e7a4208", "efbc68f", "3d5c36c", "c2883f4", "da53d04", "d21f973", "0f94692", "e156a26", "d9a2907",
-  "c79a77c", "29e9472", "b712415", "6e806aa", "24d99e3", "3455592", "613295f", "9200f4f"
-];
-
 const AIPromptsDialog: React.FC<Props> = ({ onClose }) => {
   return (
     <DialogOverlay onClick={e => e.target === e.currentTarget && onClose()}>
@@ -180,12 +184,19 @@ const AIPromptsDialog: React.FC<Props> = ({ onClose }) => {
           <CloseButton onClick={onClose}>×</CloseButton>
         </DialogHeader>
         
+        <CommitCount>Total Commits: {commitMessages.length}</CommitCount>
+        
+        <Description>
+          This game was an AI experiment. It was mainly made using Cursor (with manual setup of the infrastructure). I have included all the successful prompts that made this game.
+          <br /><br />
+          There were many failed prompts that were rolled back. The code is pretty awful to maintain as it does not follow the coding practices of experienced engineers, and it gets more difficult to prompt engineer as the codebase gets bigger. But it works.
+        </Description>
+        
         <PromptsList>
           {commitMessages.map((message, index) => (
             <PromptItem key={index}>
               <PromptNumber>Prompt #{index + 1}</PromptNumber>
               <PromptText>{message}</PromptText>
-              <CommitHash>{commitHashes[index]}</CommitHash>
             </PromptItem>
           ))}
         </PromptsList>
