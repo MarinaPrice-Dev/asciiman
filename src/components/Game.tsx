@@ -10,7 +10,7 @@ import {
   moveGhost,
 } from '../utils/gameUtils';
 
-type Difficulty = 'easy' | 'medium' | 'hard';
+type Difficulty = 'easy' | 'medium' | 'hard' | 'insane';
 
 const DIFFICULTY_CONFIGS = {
   easy: {
@@ -26,18 +26,27 @@ const DIFFICULTY_CONFIGS = {
     foodScore: 12,
     ghosts: [
       { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
-      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 270, lastMoved: 0 },
-      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 15, lockOnTimer: 0, speed: 350, lastMoved: 0 },
-      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 12, lockOnTimer: 0, speed: 350, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 20, lockOnTimer: 0, speed: 280, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 12, lockOnTimer: 0, speed: 350, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 10, lockOnTimer: 0, speed: 350, lastMoved: 0 },
     ] as Ghost[],
   },
   hard: {
     foodScore: 15,
     ghosts: [
-      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 30, lockOnTimer: 0, speed: 200, lastMoved: 0 },
+      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 25, lockOnTimer: 0, speed: 230, lastMoved: 0 },
       { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 25, lockOnTimer: 0, speed: 250, lastMoved: 0 },
-      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 20, lockOnTimer: 0, speed: 300, lastMoved: 0 },
-      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 15, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 12, lockOnTimer: 0, speed: 300, lastMoved: 0 },
+    ] as Ghost[],
+  },
+  insane: {
+    foodScore: 20,
+    ghosts: [
+      { position: { x: 13, y: 13 }, color: '#ff0000', name: 'Blinky', lockOnDuration: 30, lockOnTimer: 0, speed: 180, lastMoved: 0 },
+      { position: { x: 14, y: 13 }, color: '#ffb8ff', name: 'Pinky', lockOnDuration: 30, lockOnTimer: 0, speed: 200, lastMoved: 0 },
+      { position: { x: 13, y: 14 }, color: '#00ffff', name: 'Inky', lockOnDuration: 20, lockOnTimer: 0, speed: 250, lastMoved: 0 },
+      { position: { x: 14, y: 14 }, color: '#ffb852', name: 'Clyde', lockOnDuration: 20, lockOnTimer: 0, speed: 250, lastMoved: 0 },
     ] as Ghost[],
   },
 };
@@ -173,19 +182,19 @@ const DifficultySelector = styled.div`
   align-items: center;
 `;
 
-const DifficultyButton = styled.button<{ active: boolean }>`
+const DifficultyButton = styled.button<{ active: boolean; insane?: boolean }>`
   padding: 6px 12px;
   font-size: 0.9rem;
   border-radius: 4px;
-  border: 2px solid ${props => props.active ? '#ffd700' : '#444'};
-  background: ${props => props.active ? '#ffd700' : 'transparent'};
-  color: ${props => props.active ? '#222' : '#fff'};
+  border: 2px solid ${props => props.active ? (props.insane ? '#ff3333' : '#ffd700') : '#444'};
+  background: ${props => props.active ? (props.insane ? '#ff3333' : '#ffd700') : 'transparent'};
+  color: ${props => props.active ? (props.insane ? '#fff' : '#222') : '#fff'};
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
   &:hover {
-    border-color: #ffd700;
-    background: ${props => props.active ? '#ffd700' : 'rgba(255, 215, 0, 0.1)'};
+    border-color: ${props => props.insane ? '#ff3333' : '#ffd700'};
+    background: ${props => props.active ? (props.insane ? '#ff3333' : '#ffd700') : props.insane ? 'rgba(255, 51, 51, 0.1)' : 'rgba(255, 215, 0, 0.1)'};
   }
 `;
 
@@ -515,6 +524,13 @@ const Game: React.FC = () => {
           onClick={() => handleDifficultyChange('hard')}
         >
           Hard
+        </DifficultyButton>
+        <DifficultyButton
+          active={difficulty === 'insane'}
+          insane
+          onClick={() => handleDifficultyChange('insane')}
+        >
+          💀 Insane
         </DifficultyButton>
       </DifficultySelector>
       <GameCard>
