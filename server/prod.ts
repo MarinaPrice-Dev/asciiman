@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -198,70 +198,75 @@ const validateScoreData = (data: unknown): data is ScoreSubmission => {
 };
 
 // Submit score endpoint
-app.post('/api/scores', async (req, res) => {
+app.post('/api/scores', (req: Request, res: Response) => {
   let client: MongoClient | null = null;
   
-  try {
-    console.log('Received score submission:', {
-      ...req.body,
-      name: req.body.name ? '[REDACTED]' : undefined
-    });
-
-    // Validate input
-    if (!validateScoreData(req.body)) {
-      console.error('Invalid input data:', {
-        data: {
-          ...req.body,
-          name: req.body.name ? '[REDACTED]' : undefined
-        }
+  (async () => {
+    try {
+      console.log('Received score submission:', {
+        ...req.body,
+        name: req.body.name ? '[REDACTED]' : undefined
       });
-      return res.status(400).json({ error: 'Invalid input data' });
-    }
 
-    const { name, score, time, mode } = req.body;
-    client = await getMongoClient();
-    const db = client.db('asciiman');
-    const scores = db.collection<GameScore>('scores');
+      // Validate input
+      if (!validateScoreData(req.body)) {
+        console.error('Invalid input data:', {
+          data: {
+            ...req.body,
+            name: req.body.name ? '[REDACTED]' : undefined
+          }
+        });
+        return res.status(400).json({ error: 'Invalid input data' });
+      }
 
-    const scoreData: GameScore = {
-      name: sanitizeName(name).slice(0, 20), // Ensure max length
-      score: Math.min(Math.max(0, score), 999999), // Ensure within bounds
-      time: Math.min(Math.max(0, time), 3600),
-      mode: mode.toLowerCase(),
-      timestamp: new Date()
-    };
+      const { name, score, time, mode } = req.body;
+      client = await getMongoClient();
+      const db = client.db('asciiman');
+      const scores = db.collection<GameScore>('scores');
 
-    // Rate limiting check
-    const recentSubmissions = await scores.countDocuments({
-      name: scoreData.name,
-      timestamp: { $gt: new Date(Date.now() - 60000) } // Last minute
-    });
+      const scoreData: GameScore = {
+        name: sanitizeName(name).slice(0, 20), // Ensure max length
+        score: Math.min(Math.max(0, score), 999999), // Ensure within bounds
+        time: Math.min(Math.max(0, time), 3600),
+        mode: mode.toLowerCase(),
+        timestamp: new Date()
+      };
 
-    if (recentSubmissions >= 5) {
-      return res.status(429).json({ error: 'Too many submissions. Please wait.' });
-    }
+      // Rate limiting check
+      const recentSubmissions = await scores.countDocuments({
+        name: scoreData.name,
+        timestamp: { $gt: new Date(Date.now() - 60000) } // Last minute
+      });
 
-    console.log('Attempting to insert score:', {
-      ...scoreData,
-      name: '[REDACTED]'
-    });
+      if (recentSubmissions >= 5) {
+        return res.status(429).json({ error: 'Too many submissions. Please wait.' });
+      }
 
-    await scores.insertOne(scoreData);
-    console.log('Score inserted successfully');
-    res.status(201).json({ message: 'Score submitted successfully' });
-  } catch (error) {
-    console.error('Error submitting score:', error);
-    res.status(500).json({ error: 'Failed to submit score' });
-  } finally {
-    if (client) {
-      try {
-        await client.close();
-        console.log('MongoDB connection closed');
-      } catch (error) {
-        console.error('Error closing MongoDB connection:', error);
+      console.log('Attempting to insert score:', {
+        ...scoreData,
+        name: '[REDACTED]'
+      });
+
+      await scores.insertOne(scoreData);
+      console.log('Score inserted successfully');
+      res.status(201).json({ message: 'Score submitted successfully' });
+    } catch (error) {
+      console.error('Error submitting score:', error);
+      res.status(500).json({ error: 'Failed to submit score' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+          console.log('MongoDB connection closed');
+        } catch (error) {
+          console.error('Error closing MongoDB connection:', error);
+        }
       }
     }
-  }
+  })().catch(error => {
+    console.error('Unhandled error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  });
 });
 
 // Serve static files from the dist directory

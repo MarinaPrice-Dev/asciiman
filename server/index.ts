@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, RequestHandler, Router } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { MongoClient } from 'mongodb';
@@ -100,72 +100,61 @@ app.get('/api/scores', async (req, res) => {
   }
 });
 
+interface ScoreRequest {
+  name: string;
+  score: number;
+  time: number;
+  mode: string;
+}
+
+const router = Router();
+
 // Submit score endpoint
-app.post('/api/scores', async (req, res) => {
+app.post('/api/scores', (req, res) => {
   let client: MongoClient | null = null;
   
-  try {
-    console.log('Received score submission:', {
-      ...req.body,
-      // Don't log the actual name for privacy
-      name: req.body.name ? '[REDACTED]' : undefined
-    });
-
-    const { name, score, time, mode } = req.body;
-    
-    // Validate input
-    if (!name || typeof score !== 'number' || typeof time !== 'number' || !mode) {
-      console.error('Invalid input data:', {
-        hasName: !!name,
-        scoreType: typeof score,
-        timeType: typeof time,
-        hasMode: !!mode
+  (async () => {
+    try {
+      console.log('Received score submission:', {
+        ...req.body,
+        name: req.body.name ? '[REDACTED]' : undefined
       });
-      return res.status(400).json({ error: 'Invalid input data' });
-    }
 
-    client = await getMongoClient();
-    const db = client.db('asciiman');
-    const scores = db.collection<GameScore>('scores');
+      const { name, score, time, mode } = req.body;
+      
+      if (!name || typeof score !== 'number' || typeof time !== 'number' || !mode) {
+        return res.status(400).json({ error: 'Invalid input data' });
+      }
 
-    const scoreData: GameScore = {
-      name: sanitizeName(name),
-      score,
-      time,
-      mode,
-      timestamp: new Date()
-    };
+      client = await getMongoClient();
+      const db = client.db('asciiman');
+      const scores = db.collection<GameScore>('scores');
 
-    console.log('Attempting to insert score:', {
-      ...scoreData,
-      name: '[REDACTED]'
-    });
+      const scoreData: GameScore = {
+        name: sanitizeName(name),
+        score,
+        time,
+        mode,
+        timestamp: new Date()
+      };
 
-    await scores.insertOne(scoreData);
-    console.log('Score inserted successfully');
-    res.status(201).json({ message: 'Score submitted successfully' });
-  } catch (error) {
-    console.error('Error submitting score:', error);
-    // Send more detailed error information in development
-    if (process.env.NODE_ENV !== 'production') {
-      res.status(500).json({ 
-        error: 'Failed to submit score',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    } else {
+      await scores.insertOne(scoreData);
+      res.status(201).json({ message: 'Score submitted successfully' });
+    } catch (error) {
+      console.error('Error submitting score:', error);
       res.status(500).json({ error: 'Failed to submit score' });
-    }
-  } finally {
-    if (client) {
-      try {
+    } finally {
+      if (client) {
         await client.close();
-        console.log('MongoDB connection closed');
-      } catch (error) {
-        console.error('Error closing MongoDB connection:', error);
       }
     }
-  }
+  })().catch(error => {
+    console.error('Unhandled error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  });
 });
+
+app.use(router);
 
 app.listen(port, () => {
   console.log(`Development server running on port ${port}`);
